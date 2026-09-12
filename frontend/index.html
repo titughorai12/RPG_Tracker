@@ -4,26 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>RPG Tracker — Level Up Your Life</title>
+    <title>RPG Tracker</title>
 
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/style.css">
 </head>
 
-<body>
+<body class="landing-page">
 
     <!-- Animated background -->
-    <div class="background">
-        <div class="stars"></div>
-        <div class="glow glow-one"></div>
-        <div class="glow glow-two"></div>
-    </div>
+    <div class="stars"></div>
+    <div class="stars stars2"></div>
 
-    <!-- Main content -->
+    <div class="glow glow-one"></div>
+    <div class="glow glow-two"></div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="logo">
+            ⚔ <span>RPG TRACKER</span>
+        </div>
+
+        <a href="/login.html" class="nav-login">
+            Enter the Realm
+        </a>
+    </nav>
+
+    <!-- Hero -->
     <main class="hero">
 
-        <div class="game-icon">
-            ⚔
-        </div>
+        <div class="sword">⚔</div>
 
         <p class="eyebrow">
             YOUR LIFE • YOUR QUEST • YOUR LEGEND
@@ -33,60 +42,68 @@
             RPG <span>TRACKER</span>
         </h1>
 
-        <p class="subtitle">
+        <p class="hero-text">
             Turn your everyday goals into epic quests.
             Complete tasks, earn XP, build your character
             and level up your real life.
         </p>
 
-        <div class="buttons">
+        <div class="hero-buttons">
 
-            <a href="register.html" class="btn primary-btn">
-                <span>⚔</span>
-                Start Your Journey
+            <a href="/register.html" class="btn primary-btn">
+                ⚔ Start Your Journey
             </a>
 
-            <a href="login.html" class="btn secondary-btn">
+            <a href="/login.html" class="btn secondary-btn">
                 Enter the Realm
             </a>
 
         </div>
 
-        <div class="features">
+        <!-- Floating game cards -->
+        <div class="floating-card card-xp">
+            <span>⭐</span>
+            <strong>+50 XP</strong>
+        </div>
 
-            <div class="feature">
-                <div class="feature-icon">⚡</div>
-                <div>
-                    <strong>Earn XP</strong>
-                    <small>Complete quests</small>
-                </div>
-            </div>
+        <div class="floating-card card-level">
+            <span>🛡️</span>
+            <strong>LEVEL UP!</strong>
+        </div>
 
-            <div class="feature">
-                <div class="feature-icon">🔥</div>
-                <div>
-                    <strong>Build Streaks</strong>
-                    <small>Stay consistent</small>
-                </div>
-            </div>
-
-            <div class="feature">
-                <div class="feature-icon">🛡️</div>
-                <div>
-                    <strong>Level Up</strong>
-                    <small>Become stronger</small>
-                </div>
-            </div>
-
+        <div class="floating-card card-coins">
+            <span>🪙</span>
+            <strong>+25 Coins</strong>
         </div>
 
     </main>
 
+    <!-- Features -->
+    <section class="features">
+
+        <div class="feature">
+            <div class="feature-icon">⚡</div>
+            <h3>Earn XP</h3>
+            <p>Complete quests</p>
+        </div>
+
+        <div class="feature">
+            <div class="feature-icon">🔥</div>
+            <h3>Build Streaks</h3>
+            <p>Stay consistent</p>
+        </div>
+
+        <div class="feature">
+            <div class="feature-icon">🛡️</div>
+            <h3>Level Up</h3>
+            <p>Become stronger</p>
+        </div>
+
+    </section>
+
     <footer>
         RPG Tracker • Begin your adventure
     </footer>
-
-    <script src="script.js"></script>
 
 </body>
 </html>

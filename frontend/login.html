@@ -1,131 +1,188 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>RPG Tracker — Login</title>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
-    <!-- IMPORTANT: CSS file must be in the same frontend folder -->
+    <title>RPG Tracker | Enter the Realm</title>
+
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body class="auth-page">
 
-    <!-- Animated Background -->
-    <div class="auth-background">
-        <div class="stars"></div>
+    <!-- =========================
+         ANIMATED BACKGROUND
+    ========================== -->
 
-        <div class="auth-glow auth-glow-one"></div>
-        <div class="auth-glow auth-glow-two"></div>
+    <div class="background">
 
-        <div class="floating-orb orb-one"></div>
-        <div class="floating-orb orb-two"></div>
-        <div class="floating-orb orb-three"></div>
+        <div class="stars stars-1"></div>
+        <div class="stars stars-2"></div>
+        <div class="stars stars-3"></div>
+
+        <div class="glow glow-1"></div>
+        <div class="glow glow-2"></div>
+        <div class="glow glow-3"></div>
+
     </div>
 
 
-    <!-- Navigation -->
-    <nav class="auth-nav">
+    <!-- =========================
+         TOP BAR
+    ========================== -->
 
-        <a href="index.html" class="auth-brand">
-            <span class="brand-sword">⚔</span>
-            <span>RPG TRACKER</span>
-        </a>
+    <header class="auth-header">
 
         <a href="index.html" class="back-link">
-            ← Back
+            ⚔ RPG TRACKER
+            <span>← Back</span>
         </a>
 
-    </nav>
+    </header>
 
 
-    <!-- Main -->
+    <!-- =========================
+         LOGIN AREA
+    ========================== -->
+
     <main class="auth-container">
 
-        <div class="login-card">
+        <!-- Floating particles -->
 
-            <!-- Top Icon -->
+        <span class="auth-particle particle-a">✦</span>
+        <span class="auth-particle particle-b">✧</span>
+        <span class="auth-particle particle-c">◆</span>
+        <span class="auth-particle particle-d">•</span>
+
+
+        <!-- Login Card -->
+
+        <section class="auth-card">
+
+            <!-- Sword -->
+
             <div class="auth-icon">
-                ⚔
+
+                <div class="mini-glow"></div>
+
+                <div class="mini-sword">
+                    ⚔
+                </div>
+
             </div>
 
-            <p class="auth-eyebrow">
-                WELCOME BACK, ADVENTURER
-            </p>
 
-            <h1>
-                Enter the <span>Realm</span>
-            </h1>
+            <!-- Heading -->
 
-            <p class="auth-subtitle">
-                Your journey continues where you left off.
-            </p>
+            <div class="auth-heading">
+
+                <div class="welcome-text">
+                    WELCOME BACK, ADVENTURER
+                </div>
+
+                <h1>
+                    Enter the Realm
+                </h1>
+
+                <p>
+                    Your journey continues where you left off.
+                </p>
+
+            </div>
 
 
-            <!-- Login Form -->
-            <form id="loginForm" class="auth-form">
+            <!-- =========================
+                 LOGIN FORM
+            ========================== -->
 
-                <!-- Username / Email -->
-                <div class="auth-form-group">
+            <form id="loginForm">
+
+
+                <!-- Username -->
+
+                <div class="input-group">
 
                     <label for="loginUsername">
                         Character Name or Email
                     </label>
 
                     <div class="input-wrapper">
-                        <span class="input-icon">👤</span>
+
+                        <span class="input-icon">
+                            👤
+                        </span>
 
                         <input
                             type="text"
                             id="loginUsername"
+                            name="username"
                             placeholder="Enter your character name"
                             autocomplete="username"
                             required
                         >
+
                     </div>
 
                 </div>
 
 
                 <!-- Password -->
-                <div class="auth-form-group">
+
+                <div class="input-group">
 
                     <label for="loginPassword">
                         Secret Code
                     </label>
 
                     <div class="input-wrapper">
-                        <span class="input-icon">🔐</span>
+
+                        <span class="input-icon">
+                            🔐
+                        </span>
 
                         <input
                             type="password"
                             id="loginPassword"
-                            placeholder="Enter your password"
+                            name="password"
+                            placeholder="Enter your secret code"
                             autocomplete="current-password"
                             required
                         >
+
                     </div>
 
                 </div>
 
 
                 <!-- Message -->
-                <p
+
+                <div
                     id="loginMessage"
                     class="auth-message">
-                </p>
+                </div>
 
 
                 <!-- Login Button -->
-                <button
-                    id="loginButton"
-                    class="auth-submit"
-                    type="submit">
 
-                    <span>⚔</span>
-                    Enter the Realm
+                <button
+                    type="submit"
+                    id="loginButton"
+                    class="auth-submit">
+
+                    <span class="submit-sword">
+                        ⚔
+                    </span>
+
+                    <span>
+                        Enter the Realm
+                    </span>
+
+                    <span class="submit-arrow">
+                        →
+                    </span>
 
                 </button>
 
@@ -133,22 +190,25 @@
 
 
             <!-- Register -->
-            <div class="auth-footer">
 
-                <p>
-                    New adventurer?
-                    <a href="register.html">
-                        Create Character
-                    </a>
-                </p>
+            <div class="auth-switch">
+
+                New adventurer?
+
+                <a href="register.html">
+                    Create Character
+                </a>
 
             </div>
 
 
             <!-- Security -->
-            <div class="auth-security">
 
-                <span>🛡</span>
+            <div class="security-note">
+
+                <span>
+                    🛡
+                </span>
 
                 <span>
                     Your adventure data is securely stored.
@@ -156,13 +216,16 @@
 
             </div>
 
-        </div>
+        </section>
 
     </main>
 
 
+    <!-- IMPORTANT
+         Keep your existing JavaScript
+    -->
+
     <script src="script.js"></script>
 
 </body>
-
 </html>
