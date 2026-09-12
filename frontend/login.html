@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>RPG Tracker — Login</title>
+
+    <!-- IMPORTANT: CSS file must be in the same frontend folder -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="auth-page">
+
+    <!-- Animated Background -->
+    <div class="auth-background">
+        <div class="stars"></div>
+
+        <div class="auth-glow auth-glow-one"></div>
+        <div class="auth-glow auth-glow-two"></div>
+
+        <div class="floating-orb orb-one"></div>
+        <div class="floating-orb orb-two"></div>
+        <div class="floating-orb orb-three"></div>
+    </div>
+
+
+    <!-- Navigation -->
+    <nav class="auth-nav">
+
+        <a href="index.html" class="auth-brand">
+            <span class="brand-sword">⚔</span>
+            <span>RPG TRACKER</span>
+        </a>
+
+        <a href="index.html" class="back-link">
+            ← Back
+        </a>
+
+    </nav>
+
+
+    <!-- Main -->
+    <main class="auth-container">
+
+        <div class="login-card">
+
+            <!-- Top Icon -->
+            <div class="auth-icon">
+                ⚔
+            </div>
+
+            <p class="auth-eyebrow">
+                WELCOME BACK, ADVENTURER
+            </p>
+
+            <h1>
+                Enter the <span>Realm</span>
+            </h1>
+
+            <p class="auth-subtitle">
+                Your journey continues where you left off.
+            </p>
+
+
+            <!-- Login Form -->
+            <form id="loginForm" class="auth-form">
+
+                <!-- Username / Email -->
+                <div class="auth-form-group">
+
+                    <label for="loginUsername">
+                        Character Name or Email
+                    </label>
+
+                    <div class="input-wrapper">
+                        <span class="input-icon">👤</span>
+
+                        <input
+                            type="text"
+                            id="loginUsername"
+                            placeholder="Enter your character name"
+                            autocomplete="username"
+                            required
+                        >
+                    </div>
+
+                </div>
+
+
+                <!-- Password -->
+                <div class="auth-form-group">
+
+                    <label for="loginPassword">
+                        Secret Code
+                    </label>
+
+                    <div class="input-wrapper">
+                        <span class="input-icon">🔐</span>
+
+                        <input
+                            type="password"
+                            id="loginPassword"
+                            placeholder="Enter your password"
+                            autocomplete="current-password"
+                            required
+                        >
+                    </div>
+
+                </div>
+
+
+                <!-- Message -->
+                <p
+                    id="loginMessage"
+                    class="auth-message">
+                </p>
+
+
+                <!-- Login Button -->
+                <button
+                    id="loginButton"
+                    class="auth-submit"
+                    type="submit">
+
+                    <span>⚔</span>
+                    Enter the Realm
+
+                </button>
+
+            </form>
+
+
+            <!-- Register -->
+            <div class="auth-footer">
+
+                <p>
+                    New adventurer?
+                    <a href="register.html">
+                        Create Character
+                    </a>
+                </p>
+
+            </div>
+
+
+            <!-- Security -->
+            <div class="auth-security">
+
+                <span>🛡</span>
+
+                <span>
+                    Your adventure data is securely stored.
+                </span>
+
+            </div>
+
+        </div>
+
+    </main>
+
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>

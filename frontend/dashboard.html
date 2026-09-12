@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>RPG Tracker - Dashboard</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="dashboard-page">
+
+    <!-- =====================================================
+         TOP NAVIGATION
+    ====================================================== -->
+
+    <nav class="top-nav">
+
+        <div class="brand">
+            ⚔️ RPG TRACKER
+        </div>
+
+        <div class="nav-right">
+
+            <div class="coin-display">
+                🪙 <span id="navCoins">0</span>
+            </div>
+
+            <button
+                id="logoutButton"
+                class="logout-btn"
+                type="button"
+            >
+                Logout
+            </button>
+
+        </div>
+
+    </nav>
+
+
+    <!-- =====================================================
+         MAIN DASHBOARD
+    ====================================================== -->
+
+    <main class="dashboard-container">
+
+
+        <!-- =================================================
+             WELCOME SECTION
+        ================================================== -->
+
+        <section class="welcome-section">
+
+            <div>
+
+                <p class="welcome-small">
+                    Welcome back, adventurer
+                </p>
+
+                <h1>
+                    <span id="username">Player</span>
+                </h1>
+
+                <p class="welcome-description">
+                    Continue your real-life adventure and complete your quests.
+                </p>
+
+            </div>
+
+
+            <div class="level-badge">
+
+                <span>LEVEL</span>
+
+                <strong id="level">
+                    1
+                </strong>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             CHARACTER + ATTRIBUTES
+        ================================================== -->
+
+        <section class="dashboard-grid">
+
+
+            <!-- CHARACTER CARD -->
+
+            <div class="dashboard-card character-card">
+
+                <div class="character-avatar">
+                    🧙
+                </div>
+
+                <div class="character-info">
+
+                    <p class="card-label">
+                        CHARACTER
+                    </p>
+
+                    <h2 id="characterName">
+                        Player
+                    </h2>
+
+
+                    <!-- XP -->
+
+                    <div class="xp-section">
+
+                        <div class="xp-header">
+
+                            <span>
+                                Experience
+                            </span>
+
+                            <span>
+                                <span id="xp">0</span>
+                                /
+                                <span id="xpNext">100</span>
+                                XP
+                            </span>
+
+                        </div>
+
+
+                        <div class="xp-bar">
+
+                            <div
+                                id="xpProgress"
+                                class="xp-progress"
+                            ></div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- ATTRIBUTES CARD -->
+
+            <div class="dashboard-card">
+
+                <p class="card-label">
+                    CHARACTER ATTRIBUTES
+                </p>
+
+                <h2>
+                    Abilities
+                </h2>
+
+
+                <div class="attribute-list">
+
+
+                    <!-- STRENGTH -->
+
+                    <div class="attribute">
+
+                        <div class="attribute-header">
+
+                            <span>
+                                💪 Strength
+                            </span>
+
+                            <span id="strength">
+                                1
+                            </span>
+
+                        </div>
+
+                        <div class="attribute-bar">
+
+                            <div
+                                id="strengthBar"
+                                class="attribute-progress"
+                            ></div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- INTELLIGENCE -->
+
+                    <div class="attribute">
+
+                        <div class="attribute-header">
+
+                            <span>
+                                🧠 Intelligence
+                            </span>
+
+                            <span id="intelligence">
+                                1
+                            </span>
+
+                        </div>
+
+                        <div class="attribute-bar">
+
+                            <div
+                                id="intelligenceBar"
+                                class="attribute-progress"
+                            ></div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- DISCIPLINE -->
+
+                    <div class="attribute">
+
+                        <div class="attribute-header">
+
+                            <span>
+                                🎯 Discipline
+                            </span>
+
+                            <span id="discipline">
+                                1
+                            </span>
+
+                        </div>
+
+                        <div class="attribute-bar">
+
+                            <div
+                                id="disciplineBar"
+                                class="attribute-progress"
+                            ></div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- CREATIVITY -->
+
+                    <div class="attribute">
+
+                        <div class="attribute-header">
+
+                            <span>
+                                🎨 Creativity
+                            </span>
+
+                            <span id="creativity">
+                                1
+                            </span>
+
+                        </div>
+
+                        <div class="attribute-bar">
+
+                            <div
+                                id="creativityBar"
+                                class="attribute-progress"
+                            ></div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- SOCIAL -->
+
+                    <div class="attribute">
+
+                        <div class="attribute-header">
+
+                            <span>
+                                🤝 Social
+                            </span>
+
+                            <span id="social">
+                                1
+                            </span>
+
+                        </div>
+
+                        <div class="attribute-bar">
+
+                            <div
+                                id="socialBar"
+                                class="attribute-progress"
+                            ></div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             QUICK STATS
+        ================================================== -->
+
+        <section class="quick-stats">
+
+
+            <!-- XP -->
+
+            <div class="stat-card">
+
+                <span class="stat-icon">
+                    ⚡
+                </span>
+
+                <div>
+
+                    <small>
+                        TOTAL XP
+                    </small>
+
+                    <strong id="statXP">
+                        0
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- COINS -->
+
+            <div class="stat-card">
+
+                <span class="stat-icon">
+                    🪙
+                </span>
+
+                <div>
+
+                    <small>
+                        COINS
+                    </small>
+
+                    <strong id="statCoins">
+                        0
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- STREAK -->
+
+            <div class="stat-card">
+
+                <span class="stat-icon">
+                    🔥
+                </span>
+
+                <div>
+
+                    <small>
+                        STREAK
+                    </small>
+
+                    <strong id="statStreak">
+                        0
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- QUESTS -->
+
+            <div class="stat-card">
+
+                <span class="stat-icon">
+                    🏆
+                </span>
+
+                <div>
+
+                    <small>
+                        QUESTS
+                    </small>
+
+                    <strong id="statQuests">
+                        0
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             QUEST SECTION
+        ================================================== -->
+
+        <section class="dashboard-card quests-card">
+
+
+            <!-- QUEST HEADER -->
+
+            <div class="section-header">
+
+                <div>
+
+                    <p class="card-label">
+                        DAILY ADVENTURES
+                    </p>
+
+                    <h2>
+                        Your Quests
+                    </h2>
+
+                </div>
+
+
+                <button
+                    id="createQuestButton"
+                    class="primary-btn"
+                    type="button"
+                >
+                    + Create Quest
+                </button>
+
+            </div>
+
+
+
+            <!-- EMPTY QUEST MESSAGE -->
+
+            <div
+                id="emptyQuests"
+                class="empty-quests"
+            >
+
+                <div class="quest-icon">
+                    ⚔️
+                </div>
+
+                <h3>
+                    No quests yet
+                </h3>
+
+                <p>
+                    Create your first real-life quest and begin your adventure.
+                </p>
+
+                <button
+                    id="createFirstQuest"
+                    class="primary-btn"
+                    type="button"
+                >
+                    Create First Quest
+                </button>
+
+            </div>
+
+
+
+            <!-- QUEST LIST -->
+
+            <div
+                id="questList"
+                class="quest-list"
+            ></div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             REWARD SHOP
+        ================================================== -->
+
+        <section class="dashboard-card shop-card">
+
+
+            <!-- SHOP HEADER -->
+
+            <div class="section-header">
+
+                <div>
+
+                    <p class="card-label">
+                        SPEND YOUR REWARDS
+                    </p>
+
+                    <h2>
+                        🏪 Reward Shop
+                    </h2>
+
+                </div>
+
+
+                <div class="shop-balance">
+
+                    🪙
+
+                    <span id="shopCoins">
+                        0
+                    </span>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- SHOP ITEMS -->
+
+            <div
+                id="shopList"
+                class="shop-list"
+            >
+
+                <div class="shop-loading">
+                    Loading rewards...
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             INVENTORY
+        ================================================== -->
+
+        <section class="dashboard-card inventory-card">
+
+
+            <!-- INVENTORY HEADER -->
+
+            <div class="section-header">
+
+                <div>
+
+                    <p class="card-label">
+                        YOUR COLLECTION
+                    </p>
+
+                    <h2>
+                        🎒 Inventory
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- INVENTORY ITEMS -->
+
+            <div
+                id="inventoryList"
+                class="inventory-list"
+            >
+
+                <div class="shop-loading">
+                    Loading inventory...
+                </div>
+
+            </div>
+
+        </section>
+
+
+    </main>
+
+
+
+    <!-- =====================================================
+         CREATE QUEST MODAL
+    ====================================================== -->
+
+    <div
+        id="questModal"
+        class="quest-modal"
+    >
+
+        <div class="quest-modal-content">
+
+
+            <!-- CLOSE -->
+
+            <button
+                id="closeQuestModal"
+                class="modal-close"
+                type="button"
+            >
+                ×
+            </button>
+
+
+            <!-- ICON -->
+
+            <div class="modal-icon">
+                ⚔️
+            </div>
+
+
+            <h2>
+                Create New Quest
+            </h2>
+
+            <p>
+                Turn a real-life task into an adventure.
+            </p>
+
+
+
+            <!-- QUEST FORM -->
+
+            <form id="questForm">
+
+
+                <!-- TITLE -->
+
+                <div class="form-group">
+
+                    <label for="questTitle">
+                        Quest Title
+                    </label>
+
+                    <input
+                        type="text"
+                        id="questTitle"
+                        maxlength="100"
+                        placeholder="Example: Complete Python practice"
+                        required
+                    >
+
+                </div>
+
+
+
+                <!-- DESCRIPTION -->
+
+                <div class="form-group">
+
+                    <label for="questDescription">
+                        Description
+                    </label>
+
+                    <textarea
+                        id="questDescription"
+                        maxlength="1000"
+                        placeholder="Describe your mission..."
+                    ></textarea>
+
+                </div>
+
+
+
+                <!-- CATEGORY -->
+
+                <div class="form-group">
+
+                    <label for="questCategory">
+                        Attribute
+                    </label>
+
+                    <select id="questCategory">
+
+                        <option value="Coding">
+                            🧠 Coding
+                        </option>
+
+                        <option value="Fitness">
+                            💪 Fitness
+                        </option>
+
+                        <option value="Study">
+                            📚 Study
+                        </option>
+
+                        <option value="Work">
+                            🎯 Work
+                        </option>
+
+                        <option value="Personal">
+                            🌟 Personal
+                        </option>
+
+                        <option value="Social">
+                            🤝 Social
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+
+                <!-- REWARDS -->
+
+                <div class="quest-rewards">
+
+                    <span>
+                        ⚡ +50 XP
+                    </span>
+
+                    <span>
+                        🪙 +25 Coins
+                    </span>
+
+                </div>
+
+
+
+                <!-- SUBMIT -->
+
+                <button
+                    type="submit"
+                    class="primary-btn quest-submit"
+                    id="questSubmitButton"
+                >
+                    Create Quest
+                </button>
+
+
+
+                <!-- MESSAGE -->
+
+                <p
+                    id="questMessage"
+                    class="form-message"
+                ></p>
+
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         REWARD POPUP
+    ====================================================== -->
+
+    <div
+        id="rewardPopup"
+        class="reward-popup"
+    >
+
+        <div class="reward-icon">
+            🎉
+        </div>
+
+        <strong id="rewardTitle">
+            Quest Complete!
+        </strong>
+
+        <span id="rewardXP">
+            +50 XP
+        </span>
+
+        <span id="rewardCoins">
+            +25 Coins
+        </span>
+
+        <span
+            id="rewardStreak"
+            class="level-up-text"
+        ></span>
+
+        <strong
+            id="rewardLevelUp"
+            class="level-up-text"
+        ></strong>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         LOADING OVERLAY
+    ====================================================== -->
+
+    <div
+        id="loadingOverlay"
+        class="loading-overlay"
+    >
+
+        <div class="loader"></div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         JAVASCRIPT
+    ====================================================== -->
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
