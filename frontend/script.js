@@ -1,1094 +1,1071 @@
 // ============================================================
-// RPG TRACKER - FRONTEND JAVASCRIPT
+// RPG TRACKER - SCRIPT.JS
+// Complete clean replacement
 // ============================================================
 
-const API_URL = "http://127.0.0.1:5000";
-
+const API_URL = "";
 
 // ============================================================
-// HELPER FUNCTIONS
+// API FUNCTION
 // ============================================================
 
-function setText(id, value) {
+async function apiFetch(endpoint, options = {}) {
+    const config = {
+        method: options.method || "GET",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json"
+        }
+    };
 
-    const element = document.getElementById(id);
-
-    if (element) {
-        element.textContent = value ?? "";
+    if (options.body !== undefined) {
+        config.body = options.body;
     }
+
+    const response = await fetch(API_URL + endpoint, config);
+
+    let data = {};
+
+    try {
+        data = await response.json();
+    } catch (error) {
+        data = {};
+    }
+
+    if (!response.ok) {
+        throw new Error(
+            data.error ||
+            data.message ||
+            `Request failed: ${response.status}`
+        );
+    }
+
+    return data;
 }
 
+// ============================================================
+// PAGE LOAD
+// ============================================================
 
-function getElement(id) {
-    return document.getElementById(id);
-}
+document.addEventListener("DOMContentLoaded", function () {
 
+    console.log("================================");
+    console.log("RPG TRACKER STARTED");
+    console.log("================================");
+
+    // Register page
+    if (document.getElementById("registerForm")) {
+        initializeRegister();
+    }
+
+    // Login page
+    if (document.getElementById("loginForm")) {
+        initializeLogin();
+    }
+
+    // Dashboard page
+    if (
+        document.getElementById("taskForm") ||
+        document.getElementById("taskList")
+    ) {
+        initializeDashboard();
+    }
+});
 
 // ============================================================
 // REGISTER
 // ============================================================
 
-const registerForm = getElement("registerForm");
+function initializeRegister() {
 
-if (registerForm) {
+    const form = document.getElementById("registerForm");
 
-    registerForm.addEventListener("submit", async function (event) {
+    if (!form) {
+        return;
+    }
+
+    form.addEventListener("submit", async function (event) {
 
         event.preventDefault();
 
         const username =
-            getElement("username").value.trim();
+            document.getElementById("registerUsername")?.value.trim();
 
         const email =
-            getElement("email").value.trim();
+            document.getElementById("registerEmail")?.value.trim();
 
         const password =
-            getElement("password").value;
+            document.getElementById("registerPassword")?.value;
 
         const message =
-            getElement("registerMessage");
+            document.getElementById("registerMessage");
+
+        const button =
+            document.getElementById("registerButton");
+
+        if (!username || !email || !password) {
+
+            showMessage(
+                message,
+                "Please fill all fields.",
+                "error"
+            );
+
+            return;
+        }
+
+        if (password.length < 6) {
+
+            showMessage(
+                message,
+                "Password must be at least 6 characters.",
+                "error"
+            );
+
+            return;
+        }
+
+        if (button) {
+            button.disabled = true;
+            button.innerText = "Creating Account...";
+        }
 
         try {
 
-            const response = await fetch(
-                `${API_URL}/api/register`,
-                {
-                    method: "POST",
+            const result = await apiFetch("/api/register", {
+                method: "POST",
+                body: JSON.stringify({
+                    username: username,
+                    email: email,
+                    password: password
+                })
+            });
 
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
+            console.log("Registration successful:", result);
 
-                    credentials: "include",
-
-                    body: JSON.stringify({
-                        username,
-                        email,
-                        password
-                    })
-                }
+            showMessage(
+                message,
+                "Account created successfully!",
+                "success"
             );
 
-            const data = await response.json();
-
-            if (!response.ok) {
-
-                message.textContent =
-                    data.message || "Registration failed.";
-
-                message.style.color = "#ff7b7b";
-
-                return;
-            }
-
-            message.textContent =
-                "Character created! Redirecting...";
-
-            message.style.color = "#72e4ca";
-
-            setTimeout(() => {
-
-                window.location.href = "login.html";
-
+            setTimeout(function () {
+                window.location.href = "/login.html";
             }, 1000);
 
         } catch (error) {
 
             console.error("Registration error:", error);
 
-            message.textContent =
-                "Cannot connect to RPG Tracker server.";
+            showMessage(
+                message,
+                error.message,
+                "error"
+            );
 
-            message.style.color = "#ff7b7b";
+            if (button) {
+                button.disabled = false;
+                button.innerText = "Create Account";
+            }
         }
     });
 }
-
 
 // ============================================================
 // LOGIN
 // ============================================================
 
-const loginForm = getElement("loginForm");
+function initializeLogin() {
 
-if (loginForm) {
+    const form = document.getElementById("loginForm");
 
-    loginForm.addEventListener("submit", async function (event) {
+    if (!form) {
+        return;
+    }
+
+    form.addEventListener("submit", async function (event) {
 
         event.preventDefault();
 
-        const login =
-            getElement("loginUsername").value.trim();
+        const username =
+            document.getElementById("loginUsername")?.value.trim();
 
         const password =
-            getElement("loginPassword").value;
+            document.getElementById("loginPassword")?.value;
 
         const message =
-            getElement("loginMessage");
+            document.getElementById("loginMessage");
 
         const button =
-            getElement("loginButton");
+            document.getElementById("loginButton");
 
-        button.disabled = true;
+        if (!username || !password) {
 
-        button.textContent = "Entering...";
+            showMessage(
+                message,
+                "Please enter username and password.",
+                "error"
+            );
+
+            return;
+        }
+
+        if (button) {
+            button.disabled = true;
+            button.innerText = "Logging in...";
+        }
 
         try {
 
-            const response = await fetch(
-                `${API_URL}/api/login`,
-                {
-                    method: "POST",
+            const result = await apiFetch("/api/login", {
+                method: "POST",
+                body: JSON.stringify({
+                    username: username,
+                    password: password
+                })
+            });
 
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
+            console.log("Login successful:", result);
 
-                    credentials: "include",
-
-                    body: JSON.stringify({
-                        login,
-                        password
-                    })
-                }
+            showMessage(
+                message,
+                "Login successful!",
+                "success"
             );
 
-            const data = await response.json();
-
-            if (!response.ok) {
-
-                message.textContent =
-                    data.message || "Login failed.";
-
-                message.style.color = "#ff7b7b";
-
-                button.disabled = false;
-
-                button.textContent = "Enter World";
-
-                return;
-            }
-
-            message.textContent =
-                "Login successful! Entering world...";
-
-            message.style.color = "#72e4ca";
-
-            setTimeout(() => {
-
-                window.location.href = "dashboard.html";
-
-            }, 600);
+            setTimeout(function () {
+                window.location.href = "/dashboard.html";
+            }, 700);
 
         } catch (error) {
 
             console.error("Login error:", error);
 
-            message.textContent =
-                "Cannot connect to server.";
+            showMessage(
+                message,
+                error.message,
+                "error"
+            );
 
-            message.style.color = "#ff7b7b";
-
-            button.disabled = false;
-
-            button.textContent = "Enter World";
+            if (button) {
+                button.disabled = false;
+                button.innerText = "Login";
+            }
         }
     });
 }
 
-
 // ============================================================
-// DASHBOARD START
-// ============================================================
-
-if (
-    getElement("questList") ||
-    getElement("shopList") ||
-    getElement("inventoryList")
-) {
-
-    initializeDashboard();
-}
-
-
-// ============================================================
-// INITIALIZE DASHBOARD
+// DASHBOARD INITIALIZATION
 // ============================================================
 
 async function initializeDashboard() {
 
-    await loadDashboard();
+    console.log("Initializing dashboard...");
 
-    await loadTasks();
+    initializeTaskForm();
 
-    await loadShop();
+    try {
 
-    await loadInventory();
+        const me = await apiFetch("/api/me");
+
+        console.log("Current user:", me);
+
+        if (!me.user) {
+
+            window.location.href = "/login.html";
+
+            return;
+        }
+
+        window.currentUser = me.user;
+
+        await refreshDashboard();
+
+    } catch (error) {
+
+        console.error(
+            "Dashboard initialization error:",
+            error
+        );
+    }
 }
 
+// ============================================================
+// REFRESH EVERYTHING
+// ============================================================
+
+async function refreshDashboard() {
+
+    console.log("Refreshing dashboard...");
+
+    try {
+
+        await loadDashboard();
+        await loadTasks();
+        await loadShop();
+        await loadInventory();
+
+        console.log("Dashboard refresh complete.");
+
+    } catch (error) {
+
+        console.error(
+            "Dashboard refresh error:",
+            error
+        );
+    }
+}
 
 // ============================================================
-// LOAD DASHBOARD
+// LOAD DASHBOARD DATA
 // ============================================================
 
 async function loadDashboard() {
 
     try {
 
-        const response = await fetch(
-            `${API_URL}/api/dashboard`,
-            {
-                method: "GET",
-                credentials: "include"
-            }
+        const data = await apiFetch("/api/dashboard");
+
+        console.log("DATABASE DATA:", data);
+
+        const user = data.user || {};
+        const attributes = data.attributes || {};
+
+        window.currentUser = user;
+
+        // ====================================================
+        // USERNAME
+        // ====================================================
+
+        setText(
+            "username",
+            user.username || "Player"
         );
 
-        if (response.status === 401) {
+        setText(
+            "welcomeUsername",
+            user.username || "Player"
+        );
 
-            window.location.href = "login.html";
+        setText(
+            "navUsername",
+            user.username || "Player"
+        );
 
-            return false;
-        }
+        // ====================================================
+        // LEVEL
+        // ====================================================
 
-        const data = await response.json();
+        const level = Number(user.level ?? 1);
 
-        if (!response.ok || !data.success) {
+        setText("level", level);
+        setText("playerLevel", level);
+        setText("navLevel", level);
 
-            console.error(
-                "Dashboard error:",
-                data
+        // ====================================================
+        // XP
+        // ====================================================
+
+        const xp = Number(user.xp ?? 0);
+
+        console.log("XP FROM DATABASE:", xp);
+
+        setText("totalXP", xp);
+        setText("playerXP", xp);
+        setText("xpText", xp);
+
+        // ====================================================
+        // COINS
+        // ====================================================
+
+        /*
+         * IMPORTANT:
+         *
+         * Dashboard has two main coin elements:
+         *
+         * Top:
+         * id="navCoins"
+         *
+         * Middle:
+         * id="totalCoins"
+         *
+         * Both MUST use the same database value.
+         */
+
+        const coins = Number(
+            user.coins ??
+            data.coins ??
+            0
+        );
+
+        console.log("================================");
+        console.log("COINS FROM DATABASE:", coins);
+        console.log("================================");
+
+        // TOP COINS
+        setText("navCoins", coins);
+
+        // MIDDLE COINS
+        setText("totalCoins", coins);
+
+        // Other possible coin elements
+        setText("coins", coins);
+        setText("playerCoins", coins);
+        setText("coinBalance", coins);
+        setText("coinAmount", coins);
+        setText("currentCoins", coins);
+
+        // ====================================================
+        // STREAK
+        // ====================================================
+
+        const currentStreak = Number(
+            user.current_streak ??
+            user.streak ??
+            0
+        );
+
+        const longestStreak = Number(
+            user.longest_streak ??
+            0
+        );
+
+        setText(
+            "currentStreak",
+            currentStreak
+        );
+
+        setText(
+            "streak",
+            currentStreak
+        );
+
+        setText(
+            "longestStreak",
+            longestStreak
+        );
+
+        // ====================================================
+        // TASK STATISTICS
+        // ====================================================
+
+        if (data.stats) {
+
+            setText(
+                "totalQuests",
+                data.stats.total_tasks ?? 0
             );
 
-            return false;
+            setText(
+                "completedQuests",
+                data.stats.completed_tasks ?? 0
+            );
         }
 
-        updatePlayerUI(
-            data.user,
-            data.attributes
-        );
+        // ====================================================
+        // ATTRIBUTES
+        // ====================================================
 
-        return true;
-
-    } catch (error) {
-
-        console.error(
-            "Dashboard loading error:",
-            error
-        );
-
-        return false;
-    }
-}
-
-
-// ============================================================
-// UPDATE PLAYER UI
-// ============================================================
-
-function updatePlayerUI(user, attributes) {
-
-    if (!user) return;
-
-    setText(
-        "username",
-        user.username
-    );
-
-    setText(
-        "characterName",
-        user.username
-    );
-
-    setText(
-        "level",
-        user.level
-    );
-
-    setText(
-        "xp",
-        user.xp
-    );
-
-    setText(
-        "navCoins",
-        user.coins
-    );
-
-    setText(
-        "statXP",
-        user.xp
-    );
-
-    setText(
-        "statCoins",
-        user.coins
-    );
-
-    setText(
-        "statStreak",
-        user.current_streak ?? 0
-    );
-
-    setText(
-        "shopCoins",
-        user.coins
-    );
-
-
-    // ========================================================
-    // XP PROGRESS
-    // ========================================================
-
-    const nextLevelXP =
-        user.level * 100;
-
-    setText(
-        "xpNext",
-        nextLevelXP
-    );
-
-    const xpPercentage =
-        Math.min(
-            (user.xp / nextLevelXP) * 100,
-            100
-        );
-
-    const xpProgress =
-        getElement("xpProgress");
-
-    if (xpProgress) {
-
-        xpProgress.style.width =
-            `${xpPercentage}%`;
-    }
-
-
-    // ========================================================
-    // ATTRIBUTES
-    // ========================================================
-
-    if (attributes) {
-
-        updateAttribute(
+        setText(
             "strength",
             attributes.strength ?? 1
         );
 
-        updateAttribute(
+        setText(
             "intelligence",
             attributes.intelligence ?? 1
         );
 
-        updateAttribute(
+        setText(
             "discipline",
             attributes.discipline ?? 1
         );
 
-        updateAttribute(
+        setText(
             "creativity",
             attributes.creativity ?? 1
         );
 
-        updateAttribute(
+        setText(
             "social",
             attributes.social ?? 1
         );
-    }
-}
 
+        // ====================================================
+        // XP BAR
+        // ====================================================
 
-// ============================================================
-// ATTRIBUTE UI
-// ============================================================
+        updateXPBar(user);
 
-function updateAttribute(name, value) {
+        // ====================================================
+        // XP TEXT
+        // ====================================================
 
-    setText(
-        name,
-        value
-    );
-
-    const bar =
-        getElement(`${name}Bar`);
-
-    if (bar) {
-
-        const percentage =
-            Math.min(
-                Number(value) * 10,
-                100
-            );
-
-        bar.style.width =
-            `${percentage}%`;
-    }
-}
-
-
-// ============================================================
-// LOAD QUESTS
-// ============================================================
-
-async function loadTasks() {
-
-    const list =
-        getElement("questList");
-
-    if (!list) return;
-
-    try {
-
-        const response = await fetch(
-            `${API_URL}/api/tasks`,
-            {
-                credentials: "include"
-            }
-        );
-
-        if (response.status === 401) {
-
-            window.location.href = "login.html";
-
-            return;
-        }
-
-        const data =
-            await response.json();
-
-        if (!response.ok || !data.success) {
-
-            console.error(
-                "Task loading error:",
-                data
-            );
-
-            return;
-        }
-
-        renderTasks(
-            data.tasks || []
-        );
+        updateXPText(user);
 
     } catch (error) {
 
         console.error(
-            "Task error:",
+            "loadDashboard error:",
             error
         );
     }
 }
 
+// ============================================================
+// XP BAR
+// ============================================================
+
+function updateXPBar(user) {
+
+    let level = Number(user.level ?? 1);
+    let xp = Number(user.xp ?? 0);
+
+    let remainingXP = xp;
+
+    while (
+        remainingXP >= level * level * 100
+    ) {
+
+        remainingXP -= level * level * 100;
+
+        level++;
+    }
+
+    const requiredXP =
+        level * level * 100;
+
+    const percentage =
+        Math.min(
+            100,
+            (remainingXP / requiredXP) * 100
+        );
+
+    const progress =
+        document.getElementById("xpProgress");
+
+    if (progress) {
+
+        progress.style.width =
+            percentage + "%";
+    }
+}
 
 // ============================================================
-// RENDER QUESTS
+// XP TEXT
+// ============================================================
+
+function updateXPText(user) {
+
+    let level = Number(user.level ?? 1);
+    let xp = Number(user.xp ?? 0);
+
+    let remainingXP = xp;
+
+    while (
+        remainingXP >= level * level * 100
+    ) {
+
+        remainingXP -= level * level * 100;
+
+        level++;
+    }
+
+    const requiredXP =
+        level * level * 100;
+
+    setText(
+        "xpProgressText",
+        `${remainingXP} / ${requiredXP} XP`
+    );
+}
+
+// ============================================================
+// LOAD TASKS
+// ============================================================
+
+async function loadTasks() {
+
+    try {
+
+        const data =
+            await apiFetch("/api/tasks");
+
+        console.log("TASKS:", data);
+
+        const tasks =
+            Array.isArray(data)
+                ? data
+                : (data.tasks || []);
+
+        renderTasks(tasks);
+
+    } catch (error) {
+
+        console.error(
+            "loadTasks error:",
+            error
+        );
+    }
+}
+
+// ============================================================
+// RENDER TASKS
 // ============================================================
 
 function renderTasks(tasks) {
 
-    const list =
-        getElement("questList");
+    const container =
+        document.getElementById("taskList");
 
-    const empty =
-        getElement("emptyQuests");
+    if (!container) {
 
-    const statQuests =
-        getElement("statQuests");
-
-    if (!list) return;
-
-    list.innerHTML = "";
-
-
-    // ========================================================
-    // QUEST COUNT
-    // ========================================================
-
-    const completedCount =
-        tasks.filter(
-            task => task.completed
-        ).length;
-
-    if (statQuests) {
-
-        statQuests.textContent =
-            completedCount;
-    }
-
-
-    // ========================================================
-    // EMPTY STATE
-    // ========================================================
-
-    if (!tasks.length) {
-
-        if (empty) {
-
-            empty.style.display =
-                "block";
-        }
+        console.error(
+            "taskList not found."
+        );
 
         return;
     }
 
+    container.innerHTML = "";
 
-    if (empty) {
+    // ========================================================
+    // NO QUESTS
+    // ========================================================
 
-        empty.style.display =
-            "none";
+    if (!tasks || tasks.length === 0) {
+
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">⚔️</div>
+
+                <h3>No quests yet</h3>
+
+                <p>
+                    Create your first real-life quest
+                    and begin your adventure.
+                </p>
+
+                <button
+                    type="button"
+                    onclick="openTaskModal()"
+                >
+                    Create First Quest
+                </button>
+            </div>
+        `;
+
+        return;
     }
 
-
     // ========================================================
-    // CREATE QUEST CARDS
+    // QUEST CARDS
     // ========================================================
 
-    tasks.forEach(task => {
+    tasks.forEach(function (task) {
 
-        const item =
+        const card =
             document.createElement("div");
 
-        item.className =
-            "quest-item";
-
+        card.className = "quest-card";
 
         if (task.completed) {
 
-            item.classList.add(
-                "completed-quest"
-            );
+            card.classList.add("completed");
         }
 
+        const category =
+            task.category || "General";
 
-        item.innerHTML = `
+        const title =
+            escapeHTML(task.title);
 
-            <div class="quest-item-header">
+        const description =
+            escapeHTML(
+                task.description || ""
+            );
 
-                <div>
+        const xp =
+            Number(task.xp_reward ?? 0);
 
-                    <h3>
-                        ${escapeHTML(task.title)}
-                    </h3>
+        const coins =
+            Number(task.coin_reward ?? 0);
 
-                    <span class="quest-category">
-                        ${escapeHTML(task.category || "Personal")}
-                    </span>
+        let actionHTML = "";
 
-                </div>
+        if (task.completed) {
 
-                ${
-                    task.completed
-                    ? "<span>✅</span>"
-                    : ""
-                }
+            actionHTML = `
+                <button
+                    class="complete-btn completed-btn"
+                    disabled
+                >
+                    ✓ Completed
+                </button>
+            `;
 
+        } else {
+
+            actionHTML = `
+                <button
+                    class="complete-btn"
+                    onclick="completeTask(${Number(task.id)})"
+                >
+                    Complete Quest
+                </button>
+            `;
+        }
+
+        card.innerHTML = `
+            <div class="quest-category">
+                ${escapeHTML(category)}
             </div>
 
+            <h3>
+                ${title}
+            </h3>
 
-            <p class="quest-description">
-                ${escapeHTML(task.description || "")}
+            <p>
+                ${description}
             </p>
 
-
-            <div class="quest-reward-display">
-
-                <span>
-                    ⚡ +${Number(task.xp_reward || 0)} XP
-                </span>
-
-                <span>
-                    🪙 +${Number(task.coin_reward || 0)} Coins
-                </span>
-
+            <div class="quest-rewards">
+                <span>⭐ ${xp} XP</span>
+                <span>🪙 ${coins}</span>
             </div>
 
-
-            ${
-                task.completed
-
-                ? `
-
-                    <button
-                        class="complete-quest-btn"
-                        disabled
-                    >
-                        ✓ Completed
-                    </button>
-
-                `
-
-                : `
-
-                    <button
-                        class="complete-quest-btn"
-                        onclick="completeQuest(${Number(task.id)})"
-                    >
-                        Complete Quest
-                    </button>
-
-                `
-            }
-
+            ${actionHTML}
         `;
 
-
-        list.appendChild(item);
-
+        container.appendChild(card);
     });
 }
 
-
 // ============================================================
-// QUEST MODAL
+// OPEN QUEST MODAL
 // ============================================================
 
-const createQuestButton =
-    getElement("createQuestButton");
+function openTaskModal() {
 
-const createFirstQuest =
-    getElement("createFirstQuest");
+    console.log(
+        "Opening quest modal..."
+    );
 
-const questModal =
-    getElement("questModal");
+    const modal =
+        document.getElementById("taskModal");
 
-const closeQuestModal =
-    getElement("closeQuestModal");
+    if (!modal) {
 
+        alert(
+            "Quest modal not found."
+        );
 
-function openQuestModal() {
+        return;
+    }
 
-    if (questModal) {
+    modal.style.display = "flex";
 
-        questModal.classList.add("active");
+    modal.classList.add("active");
+
+    const title =
+        document.getElementById("taskTitle");
+
+    if (title) {
+
+        setTimeout(function () {
+
+            title.focus();
+
+        }, 100);
     }
 }
 
+// ============================================================
+// CLOSE QUEST MODAL
+// ============================================================
 
-function closeQuestModalFunction() {
+function closeTaskModal() {
 
-    if (questModal) {
+    const modal =
+        document.getElementById("taskModal");
 
-        questModal.classList.remove("active");
+    if (!modal) {
+        return;
     }
+
+    modal.style.display = "none";
+
+    modal.classList.remove("active");
 }
-
-
-if (createQuestButton) {
-
-    createQuestButton.addEventListener(
-        "click",
-        openQuestModal
-    );
-}
-
-
-if (createFirstQuest) {
-
-    createFirstQuest.addEventListener(
-        "click",
-        openQuestModal
-    );
-}
-
-
-if (closeQuestModal) {
-
-    closeQuestModal.addEventListener(
-        "click",
-        closeQuestModalFunction
-    );
-}
-
-
-if (questModal) {
-
-    questModal.addEventListener(
-        "click",
-        function (event) {
-
-            if (event.target === questModal) {
-
-                closeQuestModalFunction();
-            }
-        }
-    );
-}
-
 
 // ============================================================
-// CREATE QUEST
+// INITIALIZE QUEST FORM
 // ============================================================
 
-const questForm =
-    getElement("questForm");
+function initializeTaskForm() {
 
-if (questForm) {
+    const form =
+        document.getElementById("taskForm");
 
-    questForm.addEventListener(
+    if (!form) {
+
+        console.warn(
+            "taskForm not found."
+        );
+
+        return;
+    }
+
+    if (
+        form.dataset.initialized === "true"
+    ) {
+
+        return;
+    }
+
+    form.dataset.initialized = "true";
+
+    form.addEventListener(
         "submit",
         async function (event) {
 
             event.preventDefault();
 
+            console.log(
+                "CREATE QUEST FORM SUBMITTED"
+            );
 
-            const title =
-                getElement("questTitle").value.trim();
-
-            const description =
-                getElement("questDescription").value.trim();
-
-            const category =
-                getElement("questCategory").value;
-
-            const message =
-                getElement("questMessage");
-
-            const button =
-                getElement("questSubmitButton");
-
-
-            if (!title) {
-
-                message.textContent =
-                    "Quest title is required.";
-
-                message.style.color =
-                    "#ff7b7b";
-
-                return;
-            }
-
-
-            button.disabled = true;
-
-            button.textContent =
-                "Creating...";
-
-
-            try {
-
-                const response =
-                    await fetch(
-                        `${API_URL}/api/tasks`,
-                        {
-                            method: "POST",
-
-                            headers: {
-                                "Content-Type":
-                                    "application/json"
-                            },
-
-                            credentials:
-                                "include",
-
-                            body:
-                                JSON.stringify({
-                                    title,
-                                    description,
-                                    category
-                                })
-                        }
-                    );
-
-
-                const data =
-                    await response.json();
-
-
-                if (!response.ok) {
-
-                    message.textContent =
-                        data.message ||
-                        "Could not create quest.";
-
-                    message.style.color =
-                        "#ff7b7b";
-
-                    return;
-                }
-
-
-                message.textContent =
-                    "Quest created successfully!";
-
-                message.style.color =
-                    "#72e4ca";
-
-
-                questForm.reset();
-
-
-                await loadTasks();
-
-
-                setTimeout(
-                    closeQuestModalFunction,
-                    500
-                );
-
-
-            } catch (error) {
-
-                console.error(
-                    "Create quest error:",
-                    error
-                );
-
-                message.textContent =
-                    "Server connection failed.";
-
-                message.style.color =
-                    "#ff7b7b";
-
-            } finally {
-
-                button.disabled = false;
-
-                button.textContent =
-                    "Create Quest";
-            }
+            await createTask();
         }
     );
 }
 
+// ============================================================
+// CREATE QUEST
+// ============================================================
+
+async function createTask() {
+
+    console.log("================================");
+    console.log("CREATING QUEST");
+    console.log("================================");
+
+    const title =
+        document.getElementById("taskTitle")
+            ?.value.trim();
+
+    const description =
+        document.getElementById("taskDescription")
+            ?.value.trim() || "";
+
+    const category =
+        document.getElementById("taskCategory")
+            ?.value || "General";
+
+    const xpReward =
+        Number(
+            document.getElementById("taskXP")
+                ?.value || 10
+        );
+
+    const coinReward =
+        Number(
+            document.getElementById("taskCoins")
+                ?.value || 5
+        );
+
+    console.log("Title:", title);
+    console.log("Description:", description);
+    console.log("Category:", category);
+    console.log("XP:", xpReward);
+    console.log("Coins:", coinReward);
+
+    if (!title) {
+
+        alert(
+            "Please enter a quest name."
+        );
+
+        return;
+    }
+
+    if (xpReward < 0 || coinReward < 0) {
+
+        alert(
+            "XP and coins cannot be negative."
+        );
+
+        return;
+    }
+
+    try {
+
+        const result =
+            await apiFetch("/api/tasks", {
+                method: "POST",
+
+                body: JSON.stringify({
+                    title: title,
+                    description: description,
+                    category: category,
+                    xp_reward: xpReward,
+                    coin_reward: coinReward
+                })
+            });
+
+        console.log(
+            "QUEST CREATED:",
+            result
+        );
+
+        // Reset form
+        const form =
+            document.getElementById("taskForm");
+
+        if (form) {
+            form.reset();
+        }
+
+        // Close modal
+        closeTaskModal();
+
+        // Reload database data
+        await refreshDashboard();
+
+        // Success popup
+        showRewardPopup(
+            "QUEST CREATED ⚔️",
+            "Your new quest has been added!"
+        );
+
+    } catch (error) {
+
+        console.error(
+            "CREATE QUEST ERROR:",
+            error
+        );
+
+        alert(
+            "Could not create quest:\n\n" +
+            error.message
+        );
+    }
+}
 
 // ============================================================
 // COMPLETE QUEST
 // ============================================================
 
-async function completeQuest(taskId) {
+async function completeTask(taskId) {
+
+    console.log("================================");
+    console.log(
+        "COMPLETING QUEST:",
+        taskId
+    );
+    console.log("================================");
 
     try {
 
-        const response =
-            await fetch(
-                `${API_URL}/api/tasks/${taskId}/complete`,
+        const result =
+            await apiFetch(
+                `/api/tasks/${taskId}/complete`,
                 {
-                    method: "PUT",
-                    credentials: "include"
+                    method: "POST"
                 }
             );
 
-
-        const data =
-            await response.json();
-
-
-        if (!response.ok) {
-
-            showShopNotification(
-                data.error ||
-                data.message ||
-                "Could not complete quest.",
-                true
-            );
-
-            return;
-        }
-
-
-        // ====================================================
-        // SHOW REWARD
-        // ====================================================
-
-        showRewardAnimation(
-            data.reward,
-            data.player?.level_ups || 0,
-            data.player?.current_streak || 0
+        console.log(
+            "QUEST COMPLETED:",
+            result
         );
 
+        // Reload PostgreSQL data
+        await refreshDashboard();
 
-        // ====================================================
-        // REFRESH PLAYER
-        // ====================================================
+        const xp =
+            Number(
+                result.xp_earned ??
+                result.xp_reward ??
+                0
+            );
 
-        await loadDashboard();
+        const coins =
+            Number(
+                result.coins_earned ??
+                result.coin_reward ??
+                0
+            );
 
-        await loadTasks();
+        showRewardPopup(
+            "QUEST COMPLETE! ⚔️",
+            `+${xp} XP +${coins} 🪙`
+        );
+
+        if (
+            result.level_up ||
+            result.leveled_up
+        ) {
+
+            setTimeout(
+                function () {
+
+                    showRewardPopup(
+                        "LEVEL UP! 🎉",
+                        "Your character became stronger!"
+                    );
+
+                },
+                1000
+            );
+        }
 
     } catch (error) {
 
         console.error(
-            "Complete quest error:",
+            "COMPLETE QUEST ERROR:",
             error
         );
 
-        showShopNotification(
-            "Server connection failed.",
-            true
+        alert(
+            "Could not complete quest:\n\n" +
+            error.message
         );
     }
 }
 
-
 // ============================================================
-// REWARD ANIMATION
-// ============================================================
-
-function showRewardAnimation(
-    reward,
-    levelUps,
-    streak
-) {
-
-    const oldPopup =
-        document.querySelector(
-            ".reward-popup"
-        );
-
-    if (oldPopup) {
-
-        oldPopup.remove();
-    }
-
-
-    const popup =
-        document.createElement("div");
-
-    popup.className =
-        "reward-popup";
-
-
-    popup.innerHTML = `
-
-        <div class="reward-icon">
-            🎉
-        </div>
-
-        <strong>
-            Quest Complete!
-        </strong>
-
-        <span>
-            ⚡ +${Number(reward?.xp || 0)} XP
-        </span>
-
-        <span>
-            🪙 +${Number(reward?.coins || 0)} Coins
-        </span>
-
-        <span>
-            🔥 ${Number(streak || 0)} Day Streak
-        </span>
-
-        ${
-            levelUps > 0
-
-            ? `
-
-                <div class="level-up-text">
-                    ⬆️ LEVEL UP!
-                </div>
-
-            `
-
-            : ""
-        }
-
-    `;
-
-
-    document.body.appendChild(
-        popup
-    );
-
-
-    requestAnimationFrame(() => {
-
-        popup.classList.add(
-            "show"
-        );
-
-    });
-
-
-    setTimeout(() => {
-
-        popup.classList.remove(
-            "show"
-        );
-
-        setTimeout(
-            () => popup.remove(),
-            500
-        );
-
-    }, 3500);
-}
-
-
-// ============================================================
-// LOAD SHOP
+// SHOP
 // ============================================================
 
 async function loadShop() {
 
-    const shopList =
-        getElement("shopList");
-
-    if (!shopList) return;
-
-
     try {
 
-        const response =
-            await fetch(
-                `${API_URL}/api/shop`,
-                {
-                    credentials: "include"
-                }
-            );
-
-
-        if (response.status === 401) {
-
-            window.location.href =
-                "login.html";
-
-            return;
-        }
-
-
         const data =
-            await response.json();
+            await apiFetch("/api/shop");
 
-
-        if (!response.ok || !data.success) {
-
-            shopList.innerHTML = `
-
-                <div class="shop-loading">
-                    Could not load shop.
-                </div>
-
-            `;
-
-            return;
-        }
-
-
-        renderShop(
-            data.items || []
+        console.log(
+            "SHOP:",
+            data
         );
 
+        const items =
+            Array.isArray(data)
+                ? data
+                : (data.items || []);
+
+        renderShop(items);
 
     } catch (error) {
 
         console.error(
-            "Shop loading error:",
+            "Shop error:",
             error
         );
-
-
-        shopList.innerHTML = `
-
-            <div class="shop-loading">
-                Shop connection failed.
-            </div>
-
-        `;
     }
 }
-
 
 // ============================================================
 // RENDER SHOP
@@ -1096,165 +1073,130 @@ async function loadShop() {
 
 function renderShop(items) {
 
-    const shopList =
-        getElement("shopList");
+    const container =
+        document.getElementById("shopList");
 
-    if (!shopList) return;
+    if (!container) {
+        return;
+    }
 
+    container.innerHTML = "";
 
-    if (!items.length) {
+    if (!items || items.length === 0) {
 
-        shopList.innerHTML = `
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">🛒</div>
 
-            <div class="shop-loading">
-                No rewards available.
+                <h3>Shop is empty</h3>
+
+                <p>
+                    More rewards will appear here soon.
+                </p>
             </div>
-
         `;
 
         return;
     }
 
+    items.forEach(function (item) {
 
-    shopList.innerHTML =
-        items.map(item => `
+        const card =
+            document.createElement("div");
 
-            <div class="shop-item">
+        card.className = "shop-item";
 
-                <div class="shop-item-icon">
-                    ${item.icon || "🎁"}
-                </div>
+        const itemId =
+            Number(
+                item.id ??
+                item.item_id ??
+                0
+            );
 
-                <span class="shop-item-type">
-                    ${escapeHTML(item.type || "Reward")}
-                </span>
+        const itemName =
+            escapeHTML(
+                item.name ||
+                item.item_name ||
+                "Item"
+            );
 
-                <h3>
-                    ${escapeHTML(item.name || "Unknown Item")}
-                </h3>
+        const description =
+            escapeHTML(
+                item.description || ""
+            );
 
-                <p class="shop-item-description">
-                    ${escapeHTML(item.description || "")}
-                </p>
+        const icon =
+            escapeHTML(
+                item.icon || "🎁"
+            );
 
-                <div class="shop-item-footer">
+        const cost =
+            Number(item.cost ?? 0);
 
-                    <span class="shop-price">
-                        🪙 ${Number(item.cost || 0)}
-                    </span>
-
-                    <button
-                        class="buy-item-btn"
-                        onclick="buyItem(${Number(item.id)})"
-                        type="button"
-                    >
-                        BUY
-                    </button>
-
-                </div>
-
+        card.innerHTML = `
+            <div class="shop-icon">
+                ${icon}
             </div>
 
-        `).join("");
+            <h3>
+                ${itemName}
+            </h3>
+
+            <p>
+                ${description}
+            </p>
+
+            <div class="shop-price">
+                🪙 ${cost}
+            </div>
+
+            <button
+                onclick="buyItem(${itemId})"
+            >
+                Buy
+            </button>
+        `;
+
+        container.appendChild(card);
+    });
 }
 
-
 // ============================================================
-// BUY SHOP ITEM
+// BUY ITEM
 // ============================================================
 
 async function buyItem(itemId) {
 
-    const buttons =
-        document.querySelectorAll(
-            ".buy-item-btn"
-        );
-
-
-    // Prevent accidental double-click
-
-    buttons.forEach(button => {
-
-        button.disabled = true;
-
-    });
-
+    console.log(
+        "Buying item:",
+        itemId
+    );
 
     try {
 
-        const response =
-            await fetch(
-                `${API_URL}/api/shop/buy`,
+        const result =
+            await apiFetch(
+                "/api/shop/buy",
                 {
                     method: "POST",
 
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    credentials:
-                        "include",
-
-                    body:
-                        JSON.stringify({
-                            item_id: Number(itemId)
-                        })
+                    body: JSON.stringify({
+                        item_id: itemId
+                    })
                 }
             );
 
-
-        const data =
-            await response.json();
-
-
-        if (!response.ok) {
-
-            showShopNotification(
-                data.error ||
-                data.message ||
-                "Purchase failed.",
-                true
-            );
-
-            return;
-        }
-
-
-        // ====================================================
-        // SUCCESS
-        // ====================================================
-
-        showShopNotification(
-            `🎉 ${data.message || "Item purchased!"}`
+        console.log(
+            "Purchase:",
+            result
         );
 
+        await refreshDashboard();
 
-        // Update coins
-
-        if (typeof data.coins !== "undefined") {
-
-            setText(
-                "navCoins",
-                data.coins
-            );
-
-            setText(
-                "statCoins",
-                data.coins
-            );
-
-            setText(
-                "shopCoins",
-                data.coins
-            );
-        }
-
-
-        // Refresh inventory
-
-        await loadInventory();
-
+        showRewardPopup(
+            "ITEM PURCHASED 🛒",
+            "Item added to your inventory."
+        );
 
     } catch (error) {
 
@@ -1263,95 +1205,48 @@ async function buyItem(itemId) {
             error
         );
 
-        showShopNotification(
-            "Server connection failed.",
-            true
+        alert(
+            "Could not buy item:\n\n" +
+            error.message
         );
-
-    } finally {
-
-        buttons.forEach(button => {
-
-            button.disabled = false;
-
-        });
     }
 }
 
-
 // ============================================================
-// LOAD INVENTORY
+// INVENTORY
 // ============================================================
 
 async function loadInventory() {
 
-    const inventoryList =
-        getElement("inventoryList");
-
-    if (!inventoryList) return;
-
-
     try {
 
-        const response =
-            await fetch(
-                `${API_URL}/api/inventory`,
-                {
-                    credentials: "include"
-                }
-            );
-
-
-        if (response.status === 401) {
-
-            window.location.href =
-                "login.html";
-
-            return;
-        }
-
-
         const data =
-            await response.json();
+            await apiFetch("/api/inventory");
 
-
-        if (!response.ok || !data.success) {
-
-            inventoryList.innerHTML = `
-
-                <div class="shop-loading">
-                    Could not load inventory.
-                </div>
-
-            `;
-
-            return;
-        }
-
-
-        renderInventory(
-            data.items || []
+        console.log(
+            "INVENTORY:",
+            data
         );
 
+        const items =
+            Array.isArray(data)
+                ? data
+                : (
+                    data.inventory ||
+                    data.items ||
+                    []
+                );
+
+        renderInventory(items);
 
     } catch (error) {
 
         console.error(
-            "Inventory loading error:",
+            "Inventory error:",
             error
         );
-
-
-        inventoryList.innerHTML = `
-
-            <div class="shop-loading">
-                Inventory connection failed.
-            </div>
-
-        `;
     }
 }
-
 
 // ============================================================
 // RENDER INVENTORY
@@ -1359,223 +1254,317 @@ async function loadInventory() {
 
 function renderInventory(items) {
 
-    const inventoryList =
-        getElement("inventoryList");
+    const container =
+        document.getElementById(
+            "inventoryList"
+        );
 
-    if (!inventoryList) return;
+    if (!container) {
+        return;
+    }
 
+    container.innerHTML = "";
 
-    if (!items.length) {
+    if (!items || items.length === 0) {
 
-        inventoryList.innerHTML = `
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">🎒</div>
 
-            <div class="empty-inventory">
-
-                <div style="font-size: 42px;">
-                    🎒
-                </div>
+                <h3>Inventory Empty</h3>
 
                 <p>
-                    Your inventory is empty.
+                    Complete quests and visit
+                    the shop to collect items.
                 </p>
-
-                <small>
-                    Complete quests and visit the shop
-                    to collect rewards.
-                </small>
-
             </div>
-
         `;
 
         return;
     }
 
+    items.forEach(function (item) {
 
-    inventoryList.innerHTML =
-        items.map(item => `
+        const card =
+            document.createElement("div");
 
-            <div class="inventory-item">
+        card.className =
+            "inventory-item";
 
-                <div class="inventory-icon">
-                    ${getItemIcon(item.item_name)}
-                </div>
+        const itemName =
+            escapeHTML(
+                item.item_name ||
+                item.name ||
+                "Item"
+            );
 
-                <div class="inventory-info">
+        const quantity =
+            Number(
+                item.quantity ?? 1
+            );
 
-                    <h3>
-                        ${escapeHTML(item.item_name)}
-                    </h3>
-
-                    <p>
-                        ${escapeHTML(item.item_type || "Item")}
-                    </p>
-
-                </div>
-
-                <span class="inventory-quantity">
-                    ×${Number(item.quantity || 1)}
-                </span>
-
+        card.innerHTML = `
+            <div class="inventory-icon">
+                🎁
             </div>
 
-        `).join("");
-}
+            <h3>
+                ${itemName}
+            </h3>
 
+            <p>
+                Quantity: ${quantity}
+            </p>
+        `;
 
-// ============================================================
-// ITEM ICON
-// ============================================================
-
-function getItemIcon(itemName) {
-
-    const icons = {
-
-        "Iron Sword": "⚔️",
-
-        "Guardian Shield": "🛡️",
-
-        "Health Potion": "🧪",
-
-        "Magic Book": "📕",
-
-        "Golden Crown": "👑"
-
-    };
-
-    return icons[itemName] || "🎁";
-}
-
-
-// ============================================================
-// SHOP NOTIFICATION
-// ============================================================
-
-function showShopNotification(
-    message,
-    error = false
-) {
-
-    const old =
-        document.querySelector(
-            ".shop-notification"
-        );
-
-    if (old) {
-
-        old.remove();
-    }
-
-
-    const notification =
-        document.createElement(
-            "div"
-        );
-
-
-    notification.className =
-        "shop-notification";
-
-
-    if (error) {
-
-        notification.classList.add(
-            "error"
-        );
-    }
-
-
-    notification.textContent =
-        message;
-
-
-    document.body.appendChild(
-        notification
-    );
-
-
-    requestAnimationFrame(() => {
-
-        notification.classList.add(
-            "show"
-        );
-
+        container.appendChild(card);
     });
-
-
-    setTimeout(() => {
-
-        notification.classList.remove(
-            "show"
-        );
-
-        setTimeout(
-            () => notification.remove(),
-            400
-        );
-
-    }, 3000);
 }
-
 
 // ============================================================
 // LOGOUT
 // ============================================================
 
-const logoutButton =
-    getElement("logoutButton");
+async function logout() {
 
+    try {
 
-if (logoutButton) {
-
-    logoutButton.addEventListener(
-        "click",
-        async function () {
-
-            logoutButton.disabled = true;
-
-            logoutButton.textContent =
-                "Logging out...";
-
-
-            try {
-
-                await fetch(
-                    `${API_URL}/api/logout`,
-                    {
-                        method: "POST",
-                        credentials: "include"
-                    }
-                );
-
-            } catch (error) {
-
-                console.error(
-                    "Logout error:",
-                    error
-                );
-
-            } finally {
-
-                window.location.href =
-                    "login.html";
+        await apiFetch(
+            "/api/logout",
+            {
+                method: "POST"
             }
-        }
-    );
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Logout error:",
+            error
+        );
+    }
+
+    window.location.href =
+        "/login.html";
 }
 
+// ============================================================
+// REWARD POPUP
+// ============================================================
+
+function showRewardPopup(
+    title,
+    message
+) {
+
+    let popup =
+        document.getElementById(
+            "rewardPopup"
+        );
+
+    if (!popup) {
+
+        popup =
+            document.createElement("div");
+
+        popup.id =
+            "rewardPopup";
+
+        popup.style.position =
+            "fixed";
+
+        popup.style.top =
+            "30px";
+
+        popup.style.right =
+            "30px";
+
+        popup.style.zIndex =
+            "99999";
+
+        popup.style.padding =
+            "20px 25px";
+
+        popup.style.borderRadius =
+            "16px";
+
+        popup.style.background =
+            "#101722";
+
+        popup.style.color =
+            "white";
+
+        popup.style.border =
+            "1px solid rgba(255,255,255,0.15)";
+
+        popup.style.boxShadow =
+            "0 15px 50px rgba(0,0,0,0.5)";
+
+        document.body.appendChild(
+            popup
+        );
+    }
+
+    popup.innerHTML = `
+        <strong>
+            ${escapeHTML(title)}
+        </strong>
+
+        <div style="margin-top:8px;">
+            ${escapeHTML(message)}
+        </div>
+    `;
+
+    popup.style.display =
+        "block";
+
+    clearTimeout(
+        window.rewardPopupTimer
+    );
+
+    window.rewardPopupTimer =
+        setTimeout(function () {
+
+            popup.style.display =
+                "none";
+
+        }, 3000);
+}
 
 // ============================================================
-// HTML ESCAPE
+// SET TEXT
+// ============================================================
+
+function setText(id, value) {
+
+    const element =
+        document.getElementById(id);
+
+    if (!element) {
+        return;
+    }
+
+    element.textContent =
+        value;
+}
+
+// ============================================================
+// SHOW MESSAGE
+// ============================================================
+
+function showMessage(
+    element,
+    message,
+    type
+) {
+
+    if (!element) {
+        return;
+    }
+
+    element.textContent =
+        message;
+
+    element.className =
+        "message " +
+        (type || "info");
+
+    element.style.display =
+        "block";
+}
+
+// ============================================================
+// ESCAPE HTML
 // ============================================================
 
 function escapeHTML(value) {
 
-    const div =
-        document.createElement("div");
+    if (
+        value === undefined ||
+        value === null
+    ) {
 
-    div.textContent =
-        value ?? "";
+        return "";
+    }
 
-    return div.innerHTML;
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
+
+// ============================================================
+// CLOSE MODAL WHEN CLICKING OUTSIDE
+// ============================================================
+
+document.addEventListener(
+    "click",
+    function (event) {
+
+        const modal =
+            document.getElementById(
+                "taskModal"
+            );
+
+        if (!modal) {
+            return;
+        }
+
+        if (event.target === modal) {
+
+            closeTaskModal();
+        }
+    }
+);
+
+// ============================================================
+// ESCAPE KEY CLOSES MODAL
+// ============================================================
+
+document.addEventListener(
+    "keydown",
+    function (event) {
+
+        if (event.key === "Escape") {
+
+            closeTaskModal();
+        }
+    }
+);
+
+// ============================================================
+// GLOBAL FUNCTIONS
+// ============================================================
+
+window.openTaskModal =
+    openTaskModal;
+
+window.closeTaskModal =
+    closeTaskModal;
+
+window.createTask =
+    createTask;
+
+window.completeTask =
+    completeTask;
+
+window.buyItem =
+    buyItem;
+
+window.logout =
+    logout;
+
+window.refreshDashboard =
+    refreshDashboard;
+
+window.loadDashboard =
+    loadDashboard;
+
+window.loadTasks =
+    loadTasks;
+
+console.log(
+    "RPG TRACKER SCRIPT READY."
+);

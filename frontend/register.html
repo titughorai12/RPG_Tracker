@@ -4,86 +4,608 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>RPG Tracker — Create Character</title>
+    <title>RPG Tracker - Create Character</title>
 
     <link rel="stylesheet" href="style.css">
+
+    <style>
+        /* ================================
+           RPG REGISTER PAGE
+        ================================= */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            overflow-x: hidden;
+            font-family: Arial, Helvetica, sans-serif;
+            background:
+                radial-gradient(circle at 20% 20%, rgba(0, 255, 170, 0.12), transparent 30%),
+                radial-gradient(circle at 80% 80%, rgba(0, 180, 255, 0.10), transparent 30%),
+                #050b10;
+            color: #ffffff;
+        }
+
+        /* ================================
+           ANIMATED BACKGROUND
+        ================================= */
+
+        .background {
+            position: fixed;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .glow {
+            position: absolute;
+            width: 350px;
+            height: 350px;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.35;
+            animation: floatGlow 8s ease-in-out infinite;
+        }
+
+        .glow-one {
+            background: #00ff9d;
+            top: -120px;
+            left: -100px;
+        }
+
+        .glow-two {
+            background: #008cff;
+            right: -120px;
+            bottom: -100px;
+            animation-delay: -4s;
+        }
+
+        @keyframes floatGlow {
+            0%, 100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            50% {
+                transform: translate(40px, -30px) scale(1.15);
+            }
+        }
+
+        .stars {
+            position: absolute;
+            inset: 0;
+            background-image:
+                radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px),
+                radial-gradient(circle, rgba(0,255,170,0.6) 1px, transparent 1px);
+            background-size: 90px 90px, 140px 140px;
+            animation: starMove 25s linear infinite;
+            opacity: 0.35;
+        }
+
+        @keyframes starMove {
+            from {
+                background-position: 0 0, 0 0;
+            }
+
+            to {
+                background-position: 180px 180px, -220px 160px;
+            }
+        }
+
+        /* ================================
+           MAIN CONTAINER
+        ================================= */
+
+        .register-page {
+            position: relative;
+            z-index: 2;
+
+            min-height: 100vh;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 40px 20px;
+        }
+
+        /* ================================
+           REGISTER CARD
+        ================================= */
+
+        .register-card {
+            width: 100%;
+            max-width: 480px;
+
+            padding: 42px 38px;
+
+            background: rgba(7, 17, 24, 0.88);
+
+            border: 1px solid rgba(0, 255, 170, 0.25);
+
+            border-radius: 24px;
+
+            backdrop-filter: blur(18px);
+
+            box-shadow:
+                0 0 40px rgba(0, 255, 170, 0.10),
+                inset 0 0 30px rgba(0, 255, 170, 0.025);
+
+            animation: cardAppear 0.8s ease forwards;
+        }
+
+        @keyframes cardAppear {
+            from {
+                opacity: 0;
+                transform: translateY(40px) scale(0.96);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .register-card:hover {
+            border-color: rgba(0, 255, 170, 0.45);
+
+            box-shadow:
+                0 0 55px rgba(0, 255, 170, 0.15),
+                inset 0 0 35px rgba(0, 255, 170, 0.03);
+        }
+
+        /* ================================
+           ICON
+        ================================= */
+
+        .rpg-icon {
+            width: 80px;
+            height: 80px;
+
+            margin: 0 auto 20px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 42px;
+
+            border-radius: 50%;
+
+            background: rgba(0, 255, 170, 0.08);
+
+            border: 1px solid rgba(0, 255, 170, 0.35);
+
+            box-shadow:
+                0 0 25px rgba(0, 255, 170, 0.15);
+
+            animation: swordFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes swordFloat {
+            0%, 100% {
+                transform: translateY(0) rotate(-3deg);
+            }
+
+            50% {
+                transform: translateY(-8px) rotate(3deg);
+            }
+        }
+
+        /* ================================
+           HEADINGS
+        ================================= */
+
+        .register-card h1 {
+            text-align: center;
+
+            font-size: 32px;
+
+            letter-spacing: 3px;
+
+            margin-bottom: 10px;
+
+            color: #ffffff;
+
+            text-shadow:
+                0 0 15px rgba(0, 255, 170, 0.35);
+        }
+
+        .subtitle {
+            text-align: center;
+
+            color: #8ea3ad;
+
+            font-size: 15px;
+
+            margin-bottom: 32px;
+        }
+
+        /* ================================
+           FORM
+        ================================= */
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+
+            margin-bottom: 8px;
+
+            color: #c9d7dc;
+
+            font-size: 14px;
+
+            font-weight: 600;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+
+            left: 15px;
+
+            top: 50%;
+
+            transform: translateY(-50%);
+
+            font-size: 17px;
+
+            opacity: 0.7;
+
+            pointer-events: none;
+        }
+
+        .form-group input {
+            width: 100%;
+
+            padding: 15px 16px 15px 45px;
+
+            border-radius: 12px;
+
+            border: 1px solid rgba(255,255,255,0.12);
+
+            outline: none;
+
+            background: rgba(255,255,255,0.045);
+
+            color: white;
+
+            font-size: 15px;
+
+            transition:
+                border-color 0.25s ease,
+                box-shadow 0.25s ease,
+                background 0.25s ease,
+                transform 0.25s ease;
+        }
+
+        .form-group input::placeholder {
+            color: #657780;
+        }
+
+        .form-group input:focus {
+            border-color: #00ff9d;
+
+            background: rgba(0,255,157,0.045);
+
+            box-shadow:
+                0 0 0 3px rgba(0,255,157,0.08),
+                0 0 20px rgba(0,255,157,0.08);
+
+            transform: translateY(-1px);
+        }
+
+        /* ================================
+           CREATE BUTTON
+        ================================= */
+
+        .create-button {
+            width: 100%;
+
+            margin-top: 8px;
+
+            padding: 16px;
+
+            border: none;
+
+            border-radius: 13px;
+
+            cursor: pointer;
+
+            font-size: 16px;
+
+            font-weight: 700;
+
+            letter-spacing: 1px;
+
+            color: #03120d;
+
+            background: linear-gradient(
+                135deg,
+                #00ff9d,
+                #00d084
+            );
+
+            box-shadow:
+                0 8px 25px rgba(0, 255, 157, 0.18);
+
+            transition:
+                transform 0.2s ease,
+                box-shadow 0.2s ease,
+                filter 0.2s ease;
+        }
+
+        .create-button:hover {
+            transform: translateY(-3px);
+
+            filter: brightness(1.08);
+
+            box-shadow:
+                0 12px 35px rgba(0, 255, 157, 0.28);
+        }
+
+        .create-button:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .create-button:disabled {
+            cursor: not-allowed;
+
+            opacity: 0.6;
+
+            transform: none;
+        }
+
+        /* ================================
+           MESSAGE
+        ================================= */
+
+        #registerMessage {
+            min-height: 22px;
+
+            margin-top: 15px;
+
+            text-align: center;
+
+            font-size: 14px;
+
+            color: #ff7777;
+        }
+
+        /* ================================
+           LINKS
+        ================================= */
+
+        .login-text {
+            text-align: center;
+
+            margin-top: 25px;
+
+            color: #82959e;
+
+            font-size: 14px;
+        }
+
+        .login-text a {
+            color: #00ff9d;
+
+            text-decoration: none;
+
+            font-weight: 700;
+
+            transition: color 0.2s ease;
+        }
+
+        .login-text a:hover {
+            color: #ffffff;
+
+            text-shadow:
+                0 0 10px rgba(0,255,157,0.5);
+        }
+
+        .back-home {
+            display: block;
+
+            text-align: center;
+
+            margin-top: 22px;
+
+            color: #657780;
+
+            text-decoration: none;
+
+            font-size: 13px;
+
+            transition: color 0.2s ease;
+        }
+
+        .back-home:hover {
+            color: #00ff9d;
+        }
+
+        /* ================================
+           RESPONSIVE
+        ================================= */
+
+        @media (max-width: 520px) {
+
+            .register-page {
+                padding: 20px 14px;
+            }
+
+            .register-card {
+                padding: 32px 22px;
+
+                border-radius: 20px;
+            }
+
+            .register-card h1 {
+                font-size: 26px;
+            }
+
+            .rpg-icon {
+                width: 70px;
+                height: 70px;
+
+                font-size: 36px;
+            }
+        }
+
+    </style>
 </head>
 
 <body>
 
+    <!-- Animated background -->
     <div class="background">
         <div class="stars"></div>
         <div class="glow glow-one"></div>
         <div class="glow glow-two"></div>
     </div>
 
-    <main class="auth-page">
 
-        <section class="auth-card">
+    <!-- Main registration page -->
+    <main class="register-page">
 
-            <div class="auth-icon">⚔</div>
+        <section class="register-card">
 
-            <p class="eyebrow">BEGIN YOUR ADVENTURE</p>
+            <!-- RPG icon -->
+            <div class="rpg-icon">
+                ⚔️
+            </div>
 
-            <h1>Create Your <span>Character</span></h1>
 
-            <p class="auth-subtitle">
+            <!-- Heading -->
+            <h1>BEGIN YOUR ADVENTURE</h1>
+
+            <p class="subtitle">
                 Every legend starts with a single step.
             </p>
 
+
+            <!-- Registration form -->
             <form id="registerForm">
 
-                <div class="input-group">
-                    <label for="username">Character Name</label>
+                <!-- Character Name -->
+                <div class="form-group">
 
-                    <input
-                        type="text"
-                        id="username"
-                        placeholder="Enter your username"
-                        autocomplete="username"
-                        required
-                    >
+                    <label for="registerUsername">
+                        Character Name
+                    </label>
+
+                    <div class="input-wrapper">
+
+                        <span class="input-icon">
+                            🧙
+                        </span>
+
+                        <input
+                            type="text"
+                            id="registerUsername"
+                            name="username"
+                            placeholder="Enter your character name"
+                            maxlength="50"
+                            required
+                        >
+
+                    </div>
+
                 </div>
 
-                <div class="input-group">
-                    <label for="email">Email</label>
 
-                    <input
-                        type="email"
-                        id="email"
-                        placeholder="Enter your email"
-                        autocomplete="email"
-                        required
-                    >
+                <!-- Email -->
+                <div class="form-group">
+
+                    <label for="registerEmail">
+                        Email
+                    </label>
+
+                    <div class="input-wrapper">
+
+                        <span class="input-icon">
+                            ✉️
+                        </span>
+
+                        <input
+                            type="email"
+                            id="registerEmail"
+                            name="email"
+                            placeholder="Enter your email"
+                            maxlength="100"
+                            required
+                        >
+
+                    </div>
+
                 </div>
 
-                <div class="input-group">
-                    <label for="password">Secret Code</label>
 
-                    <input
-                        type="password"
-                        id="password"
-                        placeholder="Minimum 6 characters"
-                        autocomplete="new-password"
-                        required
-                    >
+                <!-- Password -->
+                <div class="form-group">
+
+                    <label for="registerPassword">
+                        Secret Code
+                    </label>
+
+                    <div class="input-wrapper">
+
+                        <span class="input-icon">
+                            🔐
+                        </span>
+
+                        <input
+                            type="password"
+                            id="registerPassword"
+                            name="password"
+                            placeholder="Create your secret code"
+                            required
+                        >
+
+                    </div>
+
                 </div>
 
-                <div id="registerMessage" class="message"></div>
 
-                <button type="submit" class="auth-btn">
-                    <span>⚔</span>
-                    Create Character
+                <!-- Error / success message -->
+                <div id="registerMessage"></div>
+
+
+                <!-- Button -->
+                <button
+                    type="submit"
+                    id="registerButton"
+                    class="create-button"
+                >
+                    ⚔ Create Character
                 </button>
 
             </form>
 
-            <p class="switch-page">
+
+            <!-- Login -->
+            <p class="login-text">
                 Already have a character?
-                <a href="login.html">Enter the Realm</a>
+                <a href="login.html">
+                    Enter the Realm
+                </a>
             </p>
 
-            <a href="index.html" class="back-link">
+
+            <!-- Home -->
+            <a
+                href="index.html"
+                class="back-home"
+            >
                 ← Back to beginning
             </a>
 
@@ -91,6 +613,8 @@
 
     </main>
 
+
+    <!-- Your existing JavaScript -->
     <script src="script.js"></script>
 
 </body>

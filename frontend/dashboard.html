@@ -1,40 +1,1567 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="RPG Tracker - Turn real-life goals into quests, earn XP, collect coins and level up."
+    >
 
     <title>RPG Tracker - Dashboard</title>
 
-    <link rel="stylesheet" href="style.css">
+    <style>
+        /* =====================================================
+           GLOBAL
+        ===================================================== */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family:
+                Inter,
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            min-height: 100vh;
+
+            color: #f5f7fa;
+
+            background:
+                radial-gradient(
+                    circle at 15% 10%,
+                    rgba(39, 174, 96, 0.18),
+                    transparent 30%
+                ),
+                radial-gradient(
+                    circle at 85% 20%,
+                    rgba(52, 152, 219, 0.12),
+                    transparent 30%
+                ),
+                #080d14;
+
+            overflow-x: hidden;
+        }
+
+        button,
+        input,
+        textarea,
+        select {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        /* =====================================================
+           BACKGROUND
+        ===================================================== */
+
+        .background {
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .stars {
+            position: absolute;
+            inset: 0;
+
+            background-image:
+                radial-gradient(
+                    1px 1px at 10% 20%,
+                    rgba(255,255,255,.8),
+                    transparent
+                ),
+                radial-gradient(
+                    1px 1px at 30% 80%,
+                    rgba(255,255,255,.6),
+                    transparent
+                ),
+                radial-gradient(
+                    1px 1px at 70% 30%,
+                    rgba(255,255,255,.7),
+                    transparent
+                ),
+                radial-gradient(
+                    1px 1px at 90% 70%,
+                    rgba(255,255,255,.7),
+                    transparent
+                );
+        }
+
+        .glow {
+            position: absolute;
+
+            width: 400px;
+            height: 400px;
+
+            border-radius: 50%;
+
+            filter: blur(100px);
+
+            opacity: .15;
+        }
+
+        .glow.one {
+            top: -150px;
+            left: -100px;
+            background: #20bf6b;
+        }
+
+        .glow.two {
+            right: -150px;
+            top: 30%;
+            background: #3867d6;
+        }
+
+        /* =====================================================
+           NAVBAR
+        ===================================================== */
+
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+
+            width: 100%;
+
+            border-bottom:
+                1px solid rgba(255,255,255,.08);
+
+            background:
+                rgba(8,13,20,.88);
+
+            backdrop-filter: blur(18px);
+        }
+
+        .nav-inner {
+            width: min(1400px, 94%);
+
+            margin: auto;
+
+            min-height: 72px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            gap: 20px;
+        }
+
+        .brand {
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+            color: white;
+
+            font-weight: 900;
+
+            letter-spacing: 1px;
+
+            font-size: 20px;
+        }
+
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 12px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #20bf6b,
+                    #0f8f52
+                );
+
+            box-shadow:
+                0 0 25px
+                rgba(32,191,107,.25);
+
+            font-size: 22px;
+        }
+
+        .nav-right {
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+        }
+
+        .nav-player {
+            display: flex;
+
+            align-items: center;
+
+            gap: 10px;
+
+            padding: 8px 12px;
+
+            border-radius: 12px;
+
+            background:
+                rgba(255,255,255,.05);
+
+            border:
+                1px solid
+                rgba(255,255,255,.08);
+        }
+
+        .avatar {
+            width: 34px;
+            height: 34px;
+
+            border-radius: 50%;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #20bf6b,
+                    #3867d6
+                );
+
+            font-weight: 900;
+        }
+
+        .nav-info {
+            display: flex;
+
+            flex-direction: column;
+
+            line-height: 1.2;
+        }
+
+        .nav-info small {
+            color: #8e9aaa;
+
+            font-size: 11px;
+        }
+
+        .nav-info strong {
+            font-size: 13px;
+        }
+
+        .nav-coins {
+            display: flex;
+
+            align-items: center;
+
+            gap: 5px;
+
+            padding: 10px 13px;
+
+            border-radius: 12px;
+
+            background:
+                rgba(255,193,7,.08);
+
+            border:
+                1px solid
+                rgba(255,193,7,.15);
+
+            color: #ffd86b;
+
+            font-weight: 800;
+        }
+
+        .logout-btn {
+            border: none;
+
+            color: #ff8e8e;
+
+            background:
+                rgba(255,75,75,.08);
+
+            border:
+                1px solid
+                rgba(255,75,75,.15);
+
+            padding: 10px 14px;
+
+            border-radius: 10px;
+
+            transition: .2s ease;
+        }
+
+        .logout-btn:hover {
+            background:
+                rgba(255,75,75,.16);
+
+            transform: translateY(-1px);
+        }
+
+        /* =====================================================
+           MAIN
+        ===================================================== */
+
+        .main {
+            width: min(1400px, 94%);
+
+            margin: 0 auto;
+
+            padding: 35px 0 70px;
+        }
+
+        /* =====================================================
+           HERO
+        ===================================================== */
+
+        .hero {
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            gap: 30px;
+
+            margin-bottom: 30px;
+        }
+
+        .hero-left {
+            max-width: 800px;
+        }
+
+        .eyebrow {
+            color: #20bf6b;
+
+            font-size: 12px;
+
+            text-transform: uppercase;
+
+            letter-spacing: 2px;
+
+            font-weight: 800;
+
+            margin-bottom: 10px;
+        }
+
+        .hero h1 {
+            font-size: clamp(30px, 5vw, 52px);
+
+            line-height: 1.05;
+
+            margin-bottom: 12px;
+        }
+
+        .hero h1 span {
+            color: #20bf6b;
+
+            text-shadow:
+                0 0 30px
+                rgba(32,191,107,.25);
+        }
+
+        .hero p {
+            color: #94a0b1;
+
+            max-width: 650px;
+
+            line-height: 1.7;
+        }
+
+        .hero-level {
+            min-width: 170px;
+
+            padding: 20px;
+
+            border-radius: 20px;
+
+            text-align: center;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(32,191,107,.12),
+                    rgba(255,255,255,.03)
+                );
+
+            border:
+                1px solid
+                rgba(32,191,107,.18);
+
+            box-shadow:
+                0 20px 50px
+                rgba(0,0,0,.18);
+        }
+
+        .hero-level .label {
+            color: #8894a5;
+
+            font-size: 12px;
+
+            text-transform: uppercase;
+
+            letter-spacing: 1px;
+        }
+
+        .hero-level .number {
+            font-size: 46px;
+
+            font-weight: 900;
+
+            color: #20bf6b;
+
+            line-height: 1.1;
+
+            margin-top: 5px;
+        }
+
+        /* =====================================================
+           XP CARD
+        ===================================================== */
+
+        .xp-card {
+            padding: 24px;
+
+            border-radius: 20px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    rgba(255,255,255,.06),
+                    rgba(255,255,255,.025)
+                );
+
+            border:
+                1px solid
+                rgba(255,255,255,.08);
+
+            box-shadow:
+                0 20px 60px
+                rgba(0,0,0,.18);
+
+            margin-bottom: 24px;
+        }
+
+        .xp-header {
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            margin-bottom: 14px;
+        }
+
+        .xp-title {
+            font-weight: 800;
+        }
+
+        .xp-text {
+            color: #20bf6b;
+
+            font-weight: 800;
+
+            font-size: 14px;
+        }
+
+        .xp-bar {
+            width: 100%;
+
+            height: 14px;
+
+            background:
+                rgba(255,255,255,.07);
+
+            border-radius: 999px;
+
+            overflow: hidden;
+
+            border:
+                1px solid
+                rgba(255,255,255,.06);
+        }
+
+        #xpProgress {
+            height: 100%;
+
+            width: 0%;
+
+            border-radius: inherit;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    #20bf6b,
+                    #45e89a
+                );
+
+            box-shadow:
+                0 0 20px
+                rgba(32,191,107,.4);
+
+            transition:
+                width .7s ease;
+        }
+
+        /* =====================================================
+           STAT GRID
+        ===================================================== */
+
+        .stats-grid {
+            display: grid;
+
+            grid-template-columns:
+                repeat(4, minmax(0, 1fr));
+
+            gap: 18px;
+
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            padding: 22px;
+
+            border-radius: 18px;
+
+            background:
+                rgba(255,255,255,.045);
+
+            border:
+                1px solid
+                rgba(255,255,255,.08);
+
+            transition:
+                transform .2s ease,
+                border-color .2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+
+            border-color:
+                rgba(32,191,107,.25);
+        }
+
+        .stat-icon {
+            font-size: 24px;
+
+            margin-bottom: 12px;
+        }
+
+        .stat-label {
+            color: #8d99aa;
+
+            font-size: 12px;
+
+            text-transform: uppercase;
+
+            letter-spacing: 1px;
+
+            margin-bottom: 7px;
+        }
+
+        .stat-value {
+            font-size: 30px;
+
+            font-weight: 900;
+        }
+
+        .coin-value {
+            color: #ffd45c;
+        }
+
+        .streak-value {
+            color: #ff9f43;
+        }
+
+        /* =====================================================
+           SECTION
+        ===================================================== */
+
+        .section {
+            margin-top: 28px;
+
+            margin-bottom: 28px;
+        }
+
+        .section-header {
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            gap: 15px;
+
+            margin-bottom: 18px;
+        }
+
+        .section-title {
+            font-size: 22px;
+
+            font-weight: 900;
+        }
+
+        .section-subtitle {
+            color: #7e8999;
+
+            font-size: 13px;
+
+            margin-top: 4px;
+        }
+
+        .primary-btn {
+            border: none;
+
+            padding: 12px 17px;
+
+            border-radius: 11px;
+
+            color: white;
+
+            font-weight: 800;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #20bf6b,
+                    #149957
+                );
+
+            box-shadow:
+                0 8px 25px
+                rgba(32,191,107,.18);
+
+            transition: .2s ease;
+        }
+
+        .primary-btn:hover {
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 12px 30px
+                rgba(32,191,107,.25);
+        }
+
+        /* =====================================================
+           CONTENT GRID
+        ===================================================== */
+
+        .content-grid {
+            display: grid;
+
+            grid-template-columns:
+                1.4fr
+                .9fr;
+
+            gap: 24px;
+        }
+
+        .panel {
+            padding: 22px;
+
+            border-radius: 20px;
+
+            background:
+                rgba(255,255,255,.04);
+
+            border:
+                1px solid
+                rgba(255,255,255,.08);
+
+            min-width: 0;
+        }
+
+        /* =====================================================
+           QUEST LIST
+        ===================================================== */
+
+        #taskList {
+            display: grid;
+
+            gap: 14px;
+        }
+
+        .quest-card {
+            padding: 18px;
+
+            border-radius: 16px;
+
+            background:
+                rgba(8,13,20,.65);
+
+            border:
+                1px solid
+                rgba(255,255,255,.08);
+
+            transition: .2s ease;
+        }
+
+        .quest-card:hover {
+            border-color:
+                rgba(32,191,107,.25);
+
+            transform:
+                translateY(-2px);
+        }
+
+        .quest-card.completed {
+            opacity: .65;
+        }
+
+        .quest-category {
+            display: inline-block;
+
+            padding: 5px 9px;
+
+            border-radius: 999px;
+
+            font-size: 10px;
+
+            text-transform: uppercase;
+
+            letter-spacing: .8px;
+
+            color: #77e3a8;
+
+            background:
+                rgba(32,191,107,.09);
+
+            margin-bottom: 9px;
+        }
+
+        .quest-card h3 {
+            font-size: 17px;
+
+            margin-bottom: 7px;
+        }
+
+        .quest-card p {
+            color: #8d98a8;
+
+            font-size: 13px;
+
+            line-height: 1.5;
+
+            margin-bottom: 14px;
+        }
+
+        .quest-rewards {
+            display: flex;
+
+            gap: 10px;
+
+            margin-bottom: 14px;
+
+            flex-wrap: wrap;
+        }
+
+        .quest-rewards span {
+            padding: 6px 9px;
+
+            border-radius: 8px;
+
+            background:
+                rgba(255,255,255,.05);
+
+            font-size: 12px;
+
+            color: #dbe2eb;
+        }
+
+        .complete-btn {
+            width: 100%;
+
+            padding: 10px;
+
+            border-radius: 9px;
+
+            border:
+                1px solid
+                rgba(32,191,107,.3);
+
+            background:
+                rgba(32,191,107,.08);
+
+            color: #65e39b;
+
+            font-weight: 800;
+
+            transition: .2s ease;
+        }
+
+        .complete-btn:hover:not(:disabled) {
+            background:
+                rgba(32,191,107,.17);
+
+            transform: translateY(-1px);
+        }
+
+        .completed-btn {
+            cursor: default;
+
+            border-color:
+                rgba(255,255,255,.08);
+
+            color: #7e8998;
+
+            background:
+                rgba(255,255,255,.04);
+        }
+
+        /* =====================================================
+           EMPTY STATE
+        ===================================================== */
+
+        .empty-state {
+            text-align: center;
+
+            padding: 40px 20px;
+
+            border:
+                1px dashed
+                rgba(255,255,255,.1);
+
+            border-radius: 16px;
+        }
+
+        .empty-icon {
+            font-size: 40px;
+
+            margin-bottom: 12px;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            color: #8490a0;
+
+            font-size: 13px;
+
+            margin-bottom: 18px;
+        }
+
+        .empty-state button {
+            border: none;
+
+            padding: 10px 15px;
+
+            border-radius: 9px;
+
+            color: white;
+
+            background: #20bf6b;
+
+            font-weight: 800;
+        }
+
+        /* =====================================================
+           ATTRIBUTES
+        ===================================================== */
+
+        .attributes {
+            display: grid;
+
+            gap: 13px;
+        }
+
+        .attribute {
+            display: grid;
+
+            grid-template-columns:
+                42px 1fr auto;
+
+            align-items: center;
+
+            gap: 10px;
+
+            padding: 12px;
+
+            border-radius: 12px;
+
+            background:
+                rgba(255,255,255,.035);
+        }
+
+        .attribute-icon {
+            width: 38px;
+            height: 38px;
+
+            border-radius: 10px;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            background:
+                rgba(255,255,255,.06);
+
+            font-size: 18px;
+        }
+
+        .attribute-name {
+            font-weight: 700;
+
+            font-size: 13px;
+        }
+
+        .attribute-bar {
+            height: 5px;
+
+            background:
+                rgba(255,255,255,.07);
+
+            border-radius: 999px;
+
+            margin-top: 6px;
+
+            overflow: hidden;
+        }
+
+        .attribute-fill {
+            height: 100%;
+
+            width: 65%;
+
+            background: #20bf6b;
+
+            border-radius: inherit;
+        }
+
+        .attribute-value {
+            font-weight: 900;
+
+            color: #20bf6b;
+        }
+
+        /* =====================================================
+           SHOP
+        ===================================================== */
+
+        #shopList {
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+
+            gap: 12px;
+        }
+
+        .shop-item {
+            padding: 15px;
+
+            border-radius: 14px;
+
+            background:
+                rgba(255,255,255,.035);
+
+            border:
+                1px solid
+                rgba(255,255,255,.07);
+        }
+
+        .shop-icon {
+            font-size: 28px;
+
+            margin-bottom: 8px;
+        }
+
+        .shop-item h3 {
+            font-size: 14px;
+
+            margin-bottom: 5px;
+        }
+
+        .shop-item p {
+            color: #808c9d;
+
+            font-size: 11px;
+
+            min-height: 32px;
+
+            margin-bottom: 10px;
+        }
+
+        .shop-price {
+            color: #ffd45c;
+
+            font-size: 12px;
+
+            font-weight: 900;
+
+            margin-bottom: 9px;
+        }
+
+        .shop-item button {
+            width: 100%;
+
+            padding: 8px;
+
+            border: none;
+
+            border-radius: 8px;
+
+            color: white;
+
+            background:
+                rgba(32,191,107,.12);
+
+            border:
+                1px solid
+                rgba(32,191,107,.2);
+
+            font-weight: 800;
+
+            font-size: 12px;
+        }
+
+        .shop-item button:hover {
+            background:
+                rgba(32,191,107,.2);
+        }
+
+        /* =====================================================
+           INVENTORY
+        ===================================================== */
+
+        #inventoryList {
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+
+            gap: 12px;
+        }
+
+        .inventory-item {
+            padding: 15px;
+
+            border-radius: 14px;
+
+            background:
+                rgba(255,255,255,.035);
+
+            border:
+                1px solid
+                rgba(255,255,255,.07);
+        }
+
+        .inventory-icon {
+            font-size: 27px;
+
+            margin-bottom: 8px;
+        }
+
+        .inventory-item h3 {
+            font-size: 14px;
+
+            margin-bottom: 5px;
+        }
+
+        .inventory-item p {
+            color: #8b96a6;
+
+            font-size: 12px;
+        }
+
+        /* =====================================================
+           MODAL
+        ===================================================== */
+
+        #taskModal {
+            display: none;
+
+            position: fixed;
+
+            inset: 0;
+
+            z-index: 1000;
+
+            align-items: center;
+
+            justify-content: center;
+
+            padding: 20px;
+
+            background:
+                rgba(0,0,0,.72);
+
+            backdrop-filter: blur(8px);
+        }
+
+        #taskModal.active {
+            display: flex;
+        }
+
+        .modal-card {
+            width: min(550px, 100%);
+
+            max-height: 90vh;
+
+            overflow-y: auto;
+
+            padding: 25px;
+
+            border-radius: 22px;
+
+            background:
+                #101722;
+
+            border:
+                1px solid
+                rgba(255,255,255,.1);
+
+            box-shadow:
+                0 30px 100px
+                rgba(0,0,0,.55);
+
+            animation:
+                modalIn .2s ease;
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: translateY(15px) scale(.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            margin-bottom: 22px;
+        }
+
+        .modal-header h2 {
+            font-size: 22px;
+        }
+
+        .close-btn {
+            width: 36px;
+            height: 36px;
+
+            border: none;
+
+            border-radius: 9px;
+
+            color: #b5bfcc;
+
+            background:
+                rgba(255,255,255,.06);
+
+            font-size: 20px;
+        }
+
+        .close-btn:hover {
+            background:
+                rgba(255,255,255,.1);
+
+            color: white;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+
+            margin-bottom: 7px;
+
+            font-size: 12px;
+
+            color: #aeb8c5;
+
+            font-weight: 700;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+
+            padding: 12px 13px;
+
+            border-radius: 10px;
+
+            border:
+                1px solid
+                rgba(255,255,255,.09);
+
+            outline: none;
+
+            color: white;
+
+            background:
+                rgba(255,255,255,.045);
+
+            transition: .2s ease;
+        }
+
+        .form-group textarea {
+            min-height: 90px;
+
+            resize: vertical;
+        }
+
+        .form-group select option {
+            background: #101722;
+
+            color: white;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            border-color:
+                rgba(32,191,107,.55);
+
+            box-shadow:
+                0 0 0 3px
+                rgba(32,191,107,.08);
+        }
+
+        .reward-grid {
+            display: grid;
+
+            grid-template-columns:
+                1fr 1fr;
+
+            gap: 12px;
+        }
+
+        .modal-actions {
+            display: flex;
+
+            gap: 10px;
+
+            margin-top: 20px;
+        }
+
+        .modal-actions button {
+            flex: 1;
+
+            padding: 12px;
+
+            border-radius: 10px;
+
+            font-weight: 800;
+        }
+
+        .cancel-btn {
+            color: #b7c0cc;
+
+            background:
+                rgba(255,255,255,.05);
+
+            border:
+                1px solid
+                rgba(255,255,255,.08);
+        }
+
+        .submit-btn {
+            color: white;
+
+            border: none;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #20bf6b,
+                    #149957
+                );
+        }
+
+        /* =====================================================
+           LOADING
+        ===================================================== */
+
+        #loadingOverlay {
+            display: none;
+
+            position: fixed;
+
+            inset: 0;
+
+            z-index: 2000;
+
+            align-items: center;
+
+            justify-content: center;
+
+            background:
+                rgba(8,13,20,.8);
+
+            backdrop-filter: blur(5px);
+        }
+
+        .loader {
+            width: 45px;
+            height: 45px;
+
+            border:
+                4px solid
+                rgba(255,255,255,.1);
+
+            border-top-color:
+                #20bf6b;
+
+            border-radius: 50%;
+
+            animation:
+                spin .8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* =====================================================
+           FOOTER
+        ===================================================== */
+
+        footer {
+            text-align: center;
+
+            padding: 25px 0 10px;
+
+            color: #586475;
+
+            font-size: 12px;
+        }
+
+        /* =====================================================
+           RESPONSIVE
+        ===================================================== */
+
+        @media (max-width: 1000px) {
+
+            .stats-grid {
+                grid-template-columns:
+                    repeat(2, 1fr);
+            }
+
+            .content-grid {
+                grid-template-columns:
+                    1fr;
+            }
+        }
+
+        @media (max-width: 650px) {
+
+            .nav-inner {
+                min-height: 65px;
+            }
+
+            .brand-text {
+                display: none;
+            }
+
+            .nav-player .nav-info {
+                display: none;
+            }
+
+            .hero {
+                flex-direction: column;
+
+                align-items: flex-start;
+            }
+
+            .hero-level {
+                width: 100%;
+            }
+
+            .stats-grid {
+                grid-template-columns:
+                    1fr 1fr;
+
+                gap: 10px;
+            }
+
+            .stat-card {
+                padding: 16px;
+            }
+
+            .stat-value {
+                font-size: 24px;
+            }
+
+            .section-header {
+                align-items: flex-start;
+
+                flex-direction: column;
+            }
+
+            .primary-btn {
+                width: 100%;
+            }
+
+            #shopList,
+            #inventoryList {
+                grid-template-columns:
+                    1fr;
+            }
+
+            .reward-grid {
+                grid-template-columns:
+                    1fr;
+            }
+
+            .main {
+                width: 92%;
+
+                padding-top: 25px;
+            }
+        }
+
+        @media (max-width: 420px) {
+
+            .stats-grid {
+                grid-template-columns:
+                    1fr;
+            }
+
+            .nav-coins {
+                padding: 8px 10px;
+            }
+
+            .logout-btn {
+                padding: 8px 10px;
+            }
+
+            .hero h1 {
+                font-size: 32px;
+            }
+        }
+    </style>
 </head>
 
-<body class="dashboard-page">
+<body>
 
     <!-- =====================================================
-         TOP NAVIGATION
+         BACKGROUND
     ====================================================== -->
 
-    <nav class="top-nav">
+    <div class="background">
+        <div class="stars"></div>
+        <div class="glow one"></div>
+        <div class="glow two"></div>
+    </div>
 
-        <div class="brand">
-            ⚔️ RPG TRACKER
-        </div>
 
-        <div class="nav-right">
+    <!-- =====================================================
+         NAVBAR
+    ====================================================== -->
 
-            <div class="coin-display">
-                🪙 <span id="navCoins">0</span>
+    <nav class="navbar">
+
+        <div class="nav-inner">
+
+            <div class="brand">
+
+                <div class="brand-icon">
+                    ⚔️
+                </div>
+
+                <div class="brand-text">
+                    RPG TRACKER
+                </div>
+
             </div>
 
-            <button
-                id="logoutButton"
-                class="logout-btn"
-                type="button"
-            >
-                Logout
-            </button>
+
+            <div class="nav-right">
+
+                <!-- TOP COINS -->
+
+                <div class="nav-coins">
+
+                    🪙
+
+                    <span id="navCoins">
+                        0
+                    </span>
+
+                </div>
+
+
+                <!-- PLAYER -->
+
+                <div class="nav-player">
+
+                    <div class="avatar">
+                        ⚔️
+                    </div>
+
+                    <div class="nav-info">
+
+                        <small>
+                            Level
+                            <span id="navLevel">
+                                1
+                            </span>
+                        </small>
+
+                        <strong id="navUsername">
+                            Player
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <!-- LOGOUT -->
+
+                <button
+                    class="logout-btn"
+                    type="button"
+                    onclick="logout()"
+                >
+                    Logout
+                </button>
+
+            </div>
 
         </div>
 
@@ -42,271 +1569,51 @@
 
 
     <!-- =====================================================
-         MAIN DASHBOARD
+         MAIN
     ====================================================== -->
 
-    <main class="dashboard-container">
+    <main class="main">
 
 
         <!-- =================================================
-             WELCOME SECTION
+             HERO
         ================================================== -->
 
-        <section class="welcome-section">
+        <section class="hero">
 
-            <div>
+            <div class="hero-left">
 
-                <p class="welcome-small">
-                    Welcome back, adventurer
-                </p>
+                <div class="eyebrow">
+                    Your real-life adventure
+                </div>
 
                 <h1>
-                    <span id="username">Player</span>
+                    Welcome,
+                    <span id="username">
+                        Player
+                    </span>
                 </h1>
 
-                <p class="welcome-description">
-                    Continue your real-life adventure and complete your quests.
+                <p>
+                    Turn your everyday goals into quests,
+                    complete them, earn XP, collect coins,
+                    and become a stronger version of yourself.
                 </p>
 
             </div>
 
 
-            <div class="level-badge">
+            <div class="hero-level">
 
-                <span>LEVEL</span>
+                <div class="label">
+                    Current Level
+                </div>
 
-                <strong id="level">
+                <div
+                    class="number"
+                    id="level"
+                >
                     1
-                </strong>
-
-            </div>
-
-        </section>
-
-
-
-        <!-- =================================================
-             CHARACTER + ATTRIBUTES
-        ================================================== -->
-
-        <section class="dashboard-grid">
-
-
-            <!-- CHARACTER CARD -->
-
-            <div class="dashboard-card character-card">
-
-                <div class="character-avatar">
-                    🧙
-                </div>
-
-                <div class="character-info">
-
-                    <p class="card-label">
-                        CHARACTER
-                    </p>
-
-                    <h2 id="characterName">
-                        Player
-                    </h2>
-
-
-                    <!-- XP -->
-
-                    <div class="xp-section">
-
-                        <div class="xp-header">
-
-                            <span>
-                                Experience
-                            </span>
-
-                            <span>
-                                <span id="xp">0</span>
-                                /
-                                <span id="xpNext">100</span>
-                                XP
-                            </span>
-
-                        </div>
-
-
-                        <div class="xp-bar">
-
-                            <div
-                                id="xpProgress"
-                                class="xp-progress"
-                            ></div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-
-            <!-- ATTRIBUTES CARD -->
-
-            <div class="dashboard-card">
-
-                <p class="card-label">
-                    CHARACTER ATTRIBUTES
-                </p>
-
-                <h2>
-                    Abilities
-                </h2>
-
-
-                <div class="attribute-list">
-
-
-                    <!-- STRENGTH -->
-
-                    <div class="attribute">
-
-                        <div class="attribute-header">
-
-                            <span>
-                                💪 Strength
-                            </span>
-
-                            <span id="strength">
-                                1
-                            </span>
-
-                        </div>
-
-                        <div class="attribute-bar">
-
-                            <div
-                                id="strengthBar"
-                                class="attribute-progress"
-                            ></div>
-
-                        </div>
-
-                    </div>
-
-
-
-                    <!-- INTELLIGENCE -->
-
-                    <div class="attribute">
-
-                        <div class="attribute-header">
-
-                            <span>
-                                🧠 Intelligence
-                            </span>
-
-                            <span id="intelligence">
-                                1
-                            </span>
-
-                        </div>
-
-                        <div class="attribute-bar">
-
-                            <div
-                                id="intelligenceBar"
-                                class="attribute-progress"
-                            ></div>
-
-                        </div>
-
-                    </div>
-
-
-
-                    <!-- DISCIPLINE -->
-
-                    <div class="attribute">
-
-                        <div class="attribute-header">
-
-                            <span>
-                                🎯 Discipline
-                            </span>
-
-                            <span id="discipline">
-                                1
-                            </span>
-
-                        </div>
-
-                        <div class="attribute-bar">
-
-                            <div
-                                id="disciplineBar"
-                                class="attribute-progress"
-                            ></div>
-
-                        </div>
-
-                    </div>
-
-
-
-                    <!-- CREATIVITY -->
-
-                    <div class="attribute">
-
-                        <div class="attribute-header">
-
-                            <span>
-                                🎨 Creativity
-                            </span>
-
-                            <span id="creativity">
-                                1
-                            </span>
-
-                        </div>
-
-                        <div class="attribute-bar">
-
-                            <div
-                                id="creativityBar"
-                                class="attribute-progress"
-                            ></div>
-
-                        </div>
-
-                    </div>
-
-
-
-                    <!-- SOCIAL -->
-
-                    <div class="attribute">
-
-                        <div class="attribute-header">
-
-                            <span>
-                                🤝 Social
-                            </span>
-
-                            <span id="social">
-                                1
-                            </span>
-
-                        </div>
-
-                        <div class="attribute-bar">
-
-                            <div
-                                id="socialBar"
-                                class="attribute-progress"
-                            ></div>
-
-                        </div>
-
-                    </div>
-
                 </div>
 
             </div>
@@ -314,281 +1621,482 @@
         </section>
 
 
-
         <!-- =================================================
-             QUICK STATS
+             XP
         ================================================== -->
 
-        <section class="quick-stats">
+        <section class="xp-card">
+
+            <div class="xp-header">
+
+                <div class="xp-title">
+                    ⚡ Experience Progress
+                </div>
+
+                <div
+                    class="xp-text"
+                    id="xpProgressText"
+                >
+                    0 / 100 XP
+                </div>
+
+            </div>
+
+            <div class="xp-bar">
+
+                <div
+                    id="xpProgress"
+                ></div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             STATS
+        ================================================== -->
+
+        <section class="stats-grid">
 
 
             <!-- XP -->
 
             <div class="stat-card">
 
-                <span class="stat-icon">
-                    ⚡
-                </span>
+                <div class="stat-icon">
+                    ⭐
+                </div>
 
-                <div>
+                <div class="stat-label">
+                    Total XP
+                </div>
 
-                    <small>
-                        TOTAL XP
-                    </small>
-
-                    <strong id="statXP">
-                        0
-                    </strong>
-
+                <div
+                    class="stat-value"
+                    id="totalXP"
+                >
+                    0
                 </div>
 
             </div>
-
 
 
             <!-- COINS -->
 
             <div class="stat-card">
 
-                <span class="stat-icon">
+                <div class="stat-icon">
                     🪙
-                </span>
+                </div>
 
-                <div>
+                <div class="stat-label">
+                    Coins
+                </div>
 
-                    <small>
-                        COINS
-                    </small>
-
-                    <strong id="statCoins">
-                        0
-                    </strong>
-
+                <div
+                    class="stat-value coin-value"
+                    id="totalCoins"
+                >
+                    0
                 </div>
 
             </div>
-
 
 
             <!-- STREAK -->
 
             <div class="stat-card">
 
-                <span class="stat-icon">
+                <div class="stat-icon">
                     🔥
-                </span>
+                </div>
 
-                <div>
+                <div class="stat-label">
+                    Current Streak
+                </div>
 
-                    <small>
-                        STREAK
-                    </small>
-
-                    <strong id="statStreak">
-                        0
-                    </strong>
-
+                <div
+                    class="stat-value streak-value"
+                    id="currentStreak"
+                >
+                    0
                 </div>
 
             </div>
 
 
-
-            <!-- QUESTS -->
+            <!-- COMPLETED -->
 
             <div class="stat-card">
 
-                <span class="stat-icon">
+                <div class="stat-icon">
                     🏆
-                </span>
+                </div>
 
-                <div>
+                <div class="stat-label">
+                    Completed Quests
+                </div>
 
-                    <small>
-                        QUESTS
-                    </small>
-
-                    <strong id="statQuests">
-                        0
-                    </strong>
-
+                <div
+                    class="stat-value"
+                    id="completedQuests"
+                >
+                    0
                 </div>
 
             </div>
 
         </section>
-
 
 
         <!-- =================================================
-             QUEST SECTION
+             QUEST + ATTRIBUTES
         ================================================== -->
 
-        <section class="dashboard-card quests-card">
+        <section class="section">
+
+            <div class="content-grid">
 
 
-            <!-- QUEST HEADER -->
+                <!-- =================================================
+                     QUESTS
+                ================================================== -->
 
-            <div class="section-header">
+                <div class="panel">
 
-                <div>
+                    <div class="section-header">
 
-                    <p class="card-label">
-                        DAILY ADVENTURES
-                    </p>
+                        <div>
 
-                    <h2>
-                        Your Quests
-                    </h2>
+                            <div class="section-title">
+                                ⚔️ My Quests
+                            </div>
+
+                            <div class="section-subtitle">
+                                Complete real-life tasks to earn rewards.
+                            </div>
+
+                        </div>
+
+                        <button
+                            class="primary-btn"
+                            type="button"
+                            onclick="openTaskModal()"
+                        >
+                            + Create Quest
+                        </button>
+
+                    </div>
+
+
+                    <div id="taskList">
+
+                        <div class="empty-state">
+
+                            <div class="empty-icon">
+                                ⚔️
+                            </div>
+
+                            <h3>
+                                Loading quests...
+                            </h3>
+
+                            <p>
+                                Preparing your adventure.
+                            </p>
+
+                        </div>
+
+                    </div>
 
                 </div>
 
 
-                <button
-                    id="createQuestButton"
-                    class="primary-btn"
-                    type="button"
-                >
-                    + Create Quest
-                </button>
+                <!-- =================================================
+                     ATTRIBUTES
+                ================================================== -->
 
-            </div>
+                <div class="panel">
+
+                    <div class="section-header">
+
+                        <div>
+
+                            <div class="section-title">
+                                📊 Attributes
+                            </div>
+
+                            <div class="section-subtitle">
+                                Your real-life character stats.
+                            </div>
+
+                        </div>
+
+                    </div>
 
 
+                    <div class="attributes">
 
-            <!-- EMPTY QUEST MESSAGE -->
 
-            <div
-                id="emptyQuests"
-                class="empty-quests"
-            >
+                        <!-- STRENGTH -->
 
-                <div class="quest-icon">
-                    ⚔️
+                        <div class="attribute">
+
+                            <div class="attribute-icon">
+                                💪
+                            </div>
+
+                            <div>
+
+                                <div class="attribute-name">
+                                    Strength
+                                </div>
+
+                                <div class="attribute-bar">
+                                    <div
+                                        class="attribute-fill"
+                                        style="width: 65%;"
+                                    ></div>
+                                </div>
+
+                            </div>
+
+                            <div
+                                class="attribute-value"
+                                id="strength"
+                            >
+                                1
+                            </div>
+
+                        </div>
+
+
+                        <!-- INTELLIGENCE -->
+
+                        <div class="attribute">
+
+                            <div class="attribute-icon">
+                                🧠
+                            </div>
+
+                            <div>
+
+                                <div class="attribute-name">
+                                    Intelligence
+                                </div>
+
+                                <div class="attribute-bar">
+                                    <div
+                                        class="attribute-fill"
+                                        style="width: 65%;"
+                                    ></div>
+                                </div>
+
+                            </div>
+
+                            <div
+                                class="attribute-value"
+                                id="intelligence"
+                            >
+                                1
+                            </div>
+
+                        </div>
+
+
+                        <!-- DISCIPLINE -->
+
+                        <div class="attribute">
+
+                            <div class="attribute-icon">
+                                🎯
+                            </div>
+
+                            <div>
+
+                                <div class="attribute-name">
+                                    Discipline
+                                </div>
+
+                                <div class="attribute-bar">
+                                    <div
+                                        class="attribute-fill"
+                                        style="width: 65%;"
+                                    ></div>
+                                </div>
+
+                            </div>
+
+                            <div
+                                class="attribute-value"
+                                id="discipline"
+                            >
+                                1
+                            </div>
+
+                        </div>
+
+
+                        <!-- CREATIVITY -->
+
+                        <div class="attribute">
+
+                            <div class="attribute-icon">
+                                🎨
+                            </div>
+
+                            <div>
+
+                                <div class="attribute-name">
+                                    Creativity
+                                </div>
+
+                                <div class="attribute-bar">
+                                    <div
+                                        class="attribute-fill"
+                                        style="width: 65%;"
+                                    ></div>
+                                </div>
+
+                            </div>
+
+                            <div
+                                class="attribute-value"
+                                id="creativity"
+                            >
+                                1
+                            </div>
+
+                        </div>
+
+
+                        <!-- SOCIAL -->
+
+                        <div class="attribute">
+
+                            <div class="attribute-icon">
+                                🤝
+                            </div>
+
+                            <div>
+
+                                <div class="attribute-name">
+                                    Social
+                                </div>
+
+                                <div class="attribute-bar">
+                                    <div
+                                        class="attribute-fill"
+                                        style="width: 65%;"
+                                    ></div>
+                                </div>
+
+                            </div>
+
+                            <div
+                                class="attribute-value"
+                                id="social"
+                            >
+                                1
+                            </div>
+
+                        </div>
+
+                    </div>
+
                 </div>
 
-                <h3>
-                    No quests yet
-                </h3>
-
-                <p>
-                    Create your first real-life quest and begin your adventure.
-                </p>
-
-                <button
-                    id="createFirstQuest"
-                    class="primary-btn"
-                    type="button"
-                >
-                    Create First Quest
-                </button>
-
             </div>
-
-
-
-            <!-- QUEST LIST -->
-
-            <div
-                id="questList"
-                class="quest-list"
-            ></div>
 
         </section>
-
 
 
         <!-- =================================================
-             REWARD SHOP
+             SHOP
         ================================================== -->
 
-        <section class="dashboard-card shop-card">
+        <section class="section">
 
+            <div class="panel">
 
-            <!-- SHOP HEADER -->
+                <div class="section-header">
 
-            <div class="section-header">
+                    <div>
 
-                <div>
+                        <div class="section-title">
+                            🛒 Reward Shop
+                        </div>
 
-                    <p class="card-label">
-                        SPEND YOUR REWARDS
-                    </p>
+                        <div class="section-subtitle">
+                            Spend your hard-earned coins.
+                        </div>
 
-                    <h2>
-                        🏪 Reward Shop
-                    </h2>
-
-                </div>
-
-
-                <div class="shop-balance">
-
-                    🪙
-
-                    <span id="shopCoins">
-                        0
-                    </span>
+                    </div>
 
                 </div>
 
-            </div>
 
+                <div id="shopList">
 
+                    <div class="empty-state">
 
-            <!-- SHOP ITEMS -->
+                        <div class="empty-icon">
+                            🛒
+                        </div>
 
-            <div
-                id="shopList"
-                class="shop-list"
-            >
+                        <h3>
+                            Loading shop...
+                        </h3>
 
-                <div class="shop-loading">
-                    Loading rewards...
+                    </div>
+
                 </div>
 
             </div>
 
         </section>
-
 
 
         <!-- =================================================
              INVENTORY
         ================================================== -->
 
-        <section class="dashboard-card inventory-card">
+        <section class="section">
 
+            <div class="panel">
 
-            <!-- INVENTORY HEADER -->
+                <div class="section-header">
 
-            <div class="section-header">
+                    <div>
 
-                <div>
+                        <div class="section-title">
+                            🎒 Inventory
+                        </div>
 
-                    <p class="card-label">
-                        YOUR COLLECTION
-                    </p>
+                        <div class="section-subtitle">
+                            Your collected rewards.
+                        </div>
 
-                    <h2>
-                        🎒 Inventory
-                    </h2>
+                    </div>
 
                 </div>
 
-            </div>
 
+                <div id="inventoryList">
 
+                    <div class="empty-state">
 
-            <!-- INVENTORY ITEMS -->
+                        <div class="empty-icon">
+                            🎒
+                        </div>
 
-            <div
-                id="inventoryList"
-                class="inventory-list"
-            >
+                        <h3>
+                            Loading inventory...
+                        </h3>
 
-                <div class="shop-loading">
-                    Loading inventory...
+                    </div>
+
                 </div>
 
             </div>
@@ -596,8 +2104,15 @@
         </section>
 
 
-    </main>
+        <!-- =================================================
+             FOOTER
+        ================================================== -->
 
+        <footer>
+            RPG Tracker • Turn life into an adventure ⚔️
+        </footer>
+
+    </main>
 
 
     <!-- =====================================================
@@ -605,116 +2120,116 @@
     ====================================================== -->
 
     <div
-        id="questModal"
-        class="quest-modal"
+        id="taskModal"
     >
 
-        <div class="quest-modal-content">
+        <div class="modal-card">
 
 
-            <!-- CLOSE -->
+            <!-- MODAL HEADER -->
 
-            <button
-                id="closeQuestModal"
-                class="modal-close"
-                type="button"
-            >
-                ×
-            </button>
+            <div class="modal-header">
 
+                <h2>
+                    ⚔️ Create New Quest
+                </h2>
 
-            <!-- ICON -->
+                <button
+                    class="close-btn"
+                    type="button"
+                    onclick="closeTaskModal()"
+                >
+                    ×
+                </button>
 
-            <div class="modal-icon">
-                ⚔️
             </div>
 
 
-            <h2>
-                Create New Quest
-            </h2>
+            <!-- FORM -->
 
-            <p>
-                Turn a real-life task into an adventure.
-            </p>
-
-
-
-            <!-- QUEST FORM -->
-
-            <form id="questForm">
+            <form id="taskForm">
 
 
                 <!-- TITLE -->
 
                 <div class="form-group">
 
-                    <label for="questTitle">
-                        Quest Title
+                    <label for="taskTitle">
+                        Quest Name
                     </label>
 
                     <input
                         type="text"
-                        id="questTitle"
+                        id="taskTitle"
+                        name="title"
+                        placeholder="Example: Study Python for 1 hour"
                         maxlength="100"
-                        placeholder="Example: Complete Python practice"
                         required
                     >
 
                 </div>
 
 
-
                 <!-- DESCRIPTION -->
 
                 <div class="form-group">
 
-                    <label for="questDescription">
+                    <label for="taskDescription">
                         Description
                     </label>
 
                     <textarea
-                        id="questDescription"
-                        maxlength="1000"
-                        placeholder="Describe your mission..."
+                        id="taskDescription"
+                        name="description"
+                        placeholder="Describe what you need to accomplish..."
                     ></textarea>
 
                 </div>
-
 
 
                 <!-- CATEGORY -->
 
                 <div class="form-group">
 
-                    <label for="questCategory">
-                        Attribute
+                    <label for="taskCategory">
+                        Category
                     </label>
 
-                    <select id="questCategory">
+                    <select
+                        id="taskCategory"
+                        name="category"
+                    >
 
-                        <option value="Coding">
-                            🧠 Coding
-                        </option>
-
-                        <option value="Fitness">
-                            💪 Fitness
+                        <option value="General">
+                            General
                         </option>
 
                         <option value="Study">
-                            📚 Study
+                            Study
                         </option>
 
                         <option value="Work">
-                            🎯 Work
+                            Work
+                        </option>
+
+                        <option value="Fitness">
+                            Fitness
+                        </option>
+
+                        <option value="Health">
+                            Health
+                        </option>
+
+                        <option value="Coding">
+                            Coding
                         </option>
 
                         <option value="Personal">
-                            🌟 Personal
+                            Personal
                         </option>
 
                         <option value="Social">
-                            🤝 Social
+                            Social
                         </option>
 
                     </select>
@@ -722,42 +2237,75 @@
                 </div>
 
 
-
                 <!-- REWARDS -->
 
-                <div class="quest-rewards">
+                <div class="reward-grid">
 
-                    <span>
-                        ⚡ +50 XP
-                    </span>
 
-                    <span>
-                        🪙 +25 Coins
-                    </span>
+                    <!-- XP -->
+
+                    <div class="form-group">
+
+                        <label for="taskXP">
+                            XP Reward
+                        </label>
+
+                        <input
+                            type="number"
+                            id="taskXP"
+                            name="xp_reward"
+                            value="10"
+                            min="0"
+                            max="10000"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- COINS -->
+
+                    <div class="form-group">
+
+                        <label for="taskCoins">
+                            Coin Reward
+                        </label>
+
+                        <input
+                            type="number"
+                            id="taskCoins"
+                            name="coin_reward"
+                            value="5"
+                            min="0"
+                            max="10000"
+                            required
+                        >
+
+                    </div>
 
                 </div>
 
 
+                <!-- ACTIONS -->
 
-                <!-- SUBMIT -->
+                <div class="modal-actions">
 
-                <button
-                    type="submit"
-                    class="primary-btn quest-submit"
-                    id="questSubmitButton"
-                >
-                    Create Quest
-                </button>
+                    <button
+                        type="button"
+                        class="cancel-btn"
+                        onclick="closeTaskModal()"
+                    >
+                        Cancel
+                    </button>
 
+                    <button
+                        type="submit"
+                        class="submit-btn"
+                    >
+                        Create Quest ⚔️
+                    </button>
 
-
-                <!-- MESSAGE -->
-
-                <p
-                    id="questMessage"
-                    class="form-message"
-                ></p>
-
+                </div>
 
             </form>
 
@@ -766,67 +2314,22 @@
     </div>
 
 
-
-    <!-- =====================================================
-         REWARD POPUP
-    ====================================================== -->
-
-    <div
-        id="rewardPopup"
-        class="reward-popup"
-    >
-
-        <div class="reward-icon">
-            🎉
-        </div>
-
-        <strong id="rewardTitle">
-            Quest Complete!
-        </strong>
-
-        <span id="rewardXP">
-            +50 XP
-        </span>
-
-        <span id="rewardCoins">
-            +25 Coins
-        </span>
-
-        <span
-            id="rewardStreak"
-            class="level-up-text"
-        ></span>
-
-        <strong
-            id="rewardLevelUp"
-            class="level-up-text"
-        ></strong>
-
-    </div>
-
-
-
     <!-- =====================================================
          LOADING OVERLAY
     ====================================================== -->
 
-    <div
-        id="loadingOverlay"
-        class="loading-overlay"
-    >
+    <div id="loadingOverlay">
 
         <div class="loader"></div>
 
     </div>
 
 
-
     <!-- =====================================================
-         JAVASCRIPT
+         SCRIPT
     ====================================================== -->
 
-    <script src="script.js"></script>
+    <script src="/script.js"></script>
 
 </body>
-
 </html>

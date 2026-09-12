@@ -1,10 +1,13 @@
-from flask import Flask, request, jsonify, session
+import os
+from datetime import date, timedelta
+
+import psycopg2
+from psycopg2.extras import RealDictCursor
+
+from flask import Flask, request, jsonify, session, send_from_directory
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
-import psycopg2
-import os
-from datetime import datetime, timedelta
 
 
 # ============================================================
@@ -18,83 +21,122 @@ load_dotenv()
 # FLASK APP
 # ============================================================
 
-app = Flask(__name__)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FRONTEND_DIR = os.path.join(BASE_DIR, "..", "frontend")
+
+app = Flask(
+    __name__,
+    static_folder=FRONTEND_DIR,
+    static_url_path=""
+)
 
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")
 
+# Session security
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-app.config["SESSION_COOKIE_SECURE"] = False
 
+# For HTTPS production
+if os.environ.get("FLASK_ENV") == "production":
+    app.config["SESSION_COOKIE_SECURE"] = True
+
+
+# During local development this is okay.
+# Because frontend and backend will eventually use the same Flask server,
+# CORS is not required for production.
 CORS(app, supports_credentials=True)
 
 
 # ============================================================
-# DATABASE CONNECTION
+# DATABASE CONFIGURATION
 # ============================================================
 
-def get_db_connection():
-    return psycopg2.connect(
-        host=os.environ.get("POSTGRES_HOST", "localhost"),
-        port=os.environ.get("POSTGRES_PORT", "5432"),
-        database=os.environ.get("POSTGRES_DB", "liferpg"),
-        user=os.environ.get("POSTGRES_USER", "postgres"),
-        password=os.environ.get("POSTGRES_PASSWORD"),
-        sslmode="disable"
+DB_HOST = os.environ.get("POSTGRES_HOST")
+DB_PORT = os.environ.get("POSTGRES_PORT", "5432")
+DB_NAME = os.environ.get("POSTGRES_DB")
+DB_USER = os.environ.get("POSTGRES_USER")
+DB_PASSWORD = os.environ.get("POSTGRES_PASSWORD")
+
+
+def get_db():
+    """
+    Create a PostgreSQL database connection.
+    """
+
+    connection = psycopg2.connect(
+        host=DB_HOST,
+        port=DB_PORT,
+        database=DB_NAME,
+        user=DB_USER,
+        password=DB_PASSWORD,
+        sslmode=os.environ.get("POSTGRES_SSLMODE", "require")
     )
 
+    return connection
+
 
 # ============================================================
-# HEALTH CHECK
+# FRONTEND ROUTES
 # ============================================================
 
 @app.route("/")
 def home():
-    return jsonify({
-        "success": True,
-        "message": "RPG Tracker API is running!"
-    })
+    return send_from_directory(FRONTEND_DIR, "index.html")
+
+
+@app.route("/index.html")
+def index_page():
+    return send_from_directory(FRONTEND_DIR, "index.html")
+
+
+@app.route("/login.html")
+def login_page():
+    return send_from_directory(FRONTEND_DIR, "login.html")
+
+
+@app.route("/register.html")
+def register_page():
+    return send_from_directory(FRONTEND_DIR, "register.html")
+
+
+@app.route("/dashboard.html")
+def dashboard_page():
+    return send_from_directory(FRONTEND_DIR, "dashboard.html")
 
 
 # ============================================================
-# TEST DATABASE
+# DATABASE TEST
 # ============================================================
 
-@app.route("/api/test-db")
-def test_db():
-
-    connection = None
-    cursor = None
+@app.route("/api/test-db", methods=["GET"])
+def test_database():
 
     try:
-        connection = get_db_connection()
+        connection = get_db()
+
         cursor = connection.cursor()
 
         cursor.execute("SELECT version();")
-        version = cursor.fetchone()[0]
+
+        result = cursor.fetchone()
+
+        cursor.close()
+        connection.close()
 
         return jsonify({
             "success": True,
             "message": "PostgreSQL connection successful!",
-            "database": "liferpg",
-            "version": version
+            "version": result[0],
+            "database": DB_NAME
         })
 
     except Exception as error:
 
         return jsonify({
             "success": False,
-            "message": "Database connection failed.",
+            "message": "Database connection failed",
             "error": str(error)
         }), 500
-
-    finally:
-
-        if cursor:
-            cursor.close()
-
-        if connection:
-            connection.close()
 
 
 # ============================================================
@@ -104,48 +146,43 @@ def test_db():
 @app.route("/api/register", methods=["POST"])
 def register():
 
-    connection = None
-    cursor = None
-
     try:
 
-        data = request.get_json() or {}
+        data = request.get_json()
+
+        if not data:
+            return jsonify({
+                "success": False,
+                "message": "No data received"
+            }), 400
 
         username = data.get("username", "").strip()
         email = data.get("email", "").strip().lower()
         password = data.get("password", "")
 
+        # Validation
         if not username or not email or not password:
-
             return jsonify({
                 "success": False,
-                "message": "Username, email and password are required."
+                "message": "Username, email and password are required"
             }), 400
 
-        if len(username) > 50:
-
+        if len(username) < 3:
             return jsonify({
                 "success": False,
-                "message": "Username must be 50 characters or less."
-            }), 400
-
-        if len(email) > 100:
-
-            return jsonify({
-                "success": False,
-                "message": "Email must be 100 characters or less."
+                "message": "Username must contain at least 3 characters"
             }), 400
 
         if len(password) < 6:
-
             return jsonify({
                 "success": False,
-                "message": "Password must contain at least 6 characters."
+                "message": "Password must contain at least 6 characters"
             }), 400
 
-        connection = get_db_connection()
-        cursor = connection.cursor()
+        connection = get_db()
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
 
+        # Check existing user
         cursor.execute(
             """
             SELECT id
@@ -158,14 +195,18 @@ def register():
         existing_user = cursor.fetchone()
 
         if existing_user:
+            cursor.close()
+            connection.close()
 
             return jsonify({
                 "success": False,
-                "message": "Username or email already exists."
+                "message": "Username or email already exists"
             }), 409
 
+        # Secure password hash
         password_hash = generate_password_hash(password)
 
+        # Create user
         cursor.execute(
             """
             INSERT INTO users
@@ -176,17 +217,32 @@ def register():
                 level,
                 xp,
                 coins,
-                current_streak,
-                longest_streak
+                longest_streak,
+                current_streak
             )
-            VALUES (%s, %s, %s, 1, 0, 0, 0, 0)
-            RETURNING id
+            VALUES
+            (
+                %s,
+                %s,
+                %s,
+                1,
+                0,
+                100,
+                0,
+                0
+            )
+            RETURNING id, username, email, level, xp, coins
             """,
-            (username, email, password_hash)
+            (
+                username,
+                email,
+                password_hash
+            )
         )
 
-        user_id = cursor.fetchone()[0]
+        user = cursor.fetchone()
 
+        # Create starting attributes
         cursor.execute(
             """
             INSERT INTO attributes
@@ -198,37 +254,37 @@ def register():
                 creativity,
                 social
             )
-            VALUES (%s, 1, 1, 1, 1, 1)
+            VALUES
+            (
+                %s,
+                1,
+                1,
+                1,
+                1,
+                1
+            )
             """,
-            (user_id,)
+            (user["id"],)
         )
 
         connection.commit()
 
+        cursor.close()
+        connection.close()
+
         return jsonify({
             "success": True,
-            "message": "Character created successfully!",
-            "user_id": user_id
+            "message": "Registration successful!",
+            "user": user
         }), 201
 
     except Exception as error:
 
-        if connection:
-            connection.rollback()
-
         return jsonify({
             "success": False,
-            "message": "Registration failed.",
+            "message": "Registration failed",
             "error": str(error)
         }), 500
-
-    finally:
-
-        if cursor:
-            cursor.close()
-
-        if connection:
-            connection.close()
 
 
 # ============================================================
@@ -238,72 +294,68 @@ def register():
 @app.route("/api/login", methods=["POST"])
 def login():
 
-    connection = None
-    cursor = None
-
     try:
 
-        data = request.get_json() or {}
+        data = request.get_json()
 
-        login_value = data.get("login", "").strip()
-        password = data.get("password", "")
-
-        if not login_value or not password:
-
+        if not data:
             return jsonify({
                 "success": False,
-                "message": "Login and password are required."
+                "message": "No data received"
             }), 400
 
-        connection = get_db_connection()
-        cursor = connection.cursor()
+        username = data.get("username", "").strip()
+        password = data.get("password", "")
+
+        if not username or not password:
+            return jsonify({
+                "success": False,
+                "message": "Username and password are required"
+            }), 400
+
+        connection = get_db()
+
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
 
         cursor.execute(
             """
-            SELECT
-                id,
-                username,
-                email,
-                password_hash
+            SELECT *
             FROM users
             WHERE username = %s OR email = %s
             """,
-            (login_value, login_value.lower())
+            (username, username.lower())
         )
 
         user = cursor.fetchone()
 
+        cursor.close()
+        connection.close()
+
         if not user:
-
             return jsonify({
                 "success": False,
-                "message": "Invalid username/email or password."
+                "message": "Invalid username or password"
             }), 401
 
-        user_id = user[0]
-        username = user[1]
-        email = user[2]
-        password_hash = user[3]
-
-        if not check_password_hash(password_hash, password):
-
+        if not check_password_hash(user["password_hash"], password):
             return jsonify({
                 "success": False,
-                "message": "Invalid username/email or password."
+                "message": "Invalid username or password"
             }), 401
 
-        session.clear()
-
-        session["user_id"] = user_id
-        session["username"] = username
+        # Store only user ID in session
+        session["user_id"] = user["id"]
 
         return jsonify({
             "success": True,
             "message": "Login successful!",
             "user": {
-                "id": user_id,
-                "username": username,
-                "email": email
+                "id": user["id"],
+                "username": user["username"],
+                "email": user["email"],
+                "level": user["level"],
+                "xp": user["xp"],
+                "coins": user["coins"]
             }
         })
 
@@ -311,100 +363,9 @@ def login():
 
         return jsonify({
             "success": False,
-            "message": "Login failed.",
+            "message": "Login failed",
             "error": str(error)
         }), 500
-
-    finally:
-
-        if cursor:
-            cursor.close()
-
-        if connection:
-            connection.close()
-
-
-# ============================================================
-# CURRENT USER
-# ============================================================
-
-@app.route("/api/me")
-def me():
-
-    user_id = session.get("user_id")
-
-    if not user_id:
-
-        return jsonify({
-            "success": False,
-            "message": "Not logged in."
-        }), 401
-
-    connection = None
-    cursor = None
-
-    try:
-
-        connection = get_db_connection()
-        cursor = connection.cursor()
-
-        cursor.execute(
-            """
-            SELECT
-                id,
-                username,
-                email,
-                level,
-                xp,
-                coins,
-                current_streak,
-                longest_streak
-            FROM users
-            WHERE id = %s
-            """,
-            (user_id,)
-        )
-
-        user = cursor.fetchone()
-
-        if not user:
-
-            session.clear()
-
-            return jsonify({
-                "success": False,
-                "message": "User not found."
-            }), 404
-
-        return jsonify({
-            "success": True,
-            "user": {
-                "id": user[0],
-                "username": user[1],
-                "email": user[2],
-                "level": user[3],
-                "xp": user[4],
-                "coins": user[5],
-                "current_streak": user[6],
-                "longest_streak": user[7]
-            }
-        })
-
-    except Exception as error:
-
-        return jsonify({
-            "success": False,
-            "message": "Could not load user.",
-            "error": str(error)
-        }), 500
-
-    finally:
-
-        if cursor:
-            cursor.close()
-
-        if connection:
-            connection.close()
 
 
 # ============================================================
@@ -418,33 +379,30 @@ def logout():
 
     return jsonify({
         "success": True,
-        "message": "Logged out successfully."
+        "message": "Logged out successfully"
     })
 
 
 # ============================================================
-# DASHBOARD
+# CURRENT USER
 # ============================================================
 
-@app.route("/api/dashboard")
-def dashboard():
+@app.route("/api/me", methods=["GET"])
+def current_user():
 
     user_id = session.get("user_id")
 
     if not user_id:
-
         return jsonify({
             "success": False,
-            "message": "Please login first."
+            "message": "Not logged in"
         }), 401
-
-    connection = None
-    cursor = None
 
     try:
 
-        connection = get_db_connection()
-        cursor = connection.cursor()
+        connection = get_db()
+
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
 
         cursor.execute(
             """
@@ -456,7 +414,75 @@ def dashboard():
                 xp,
                 coins,
                 current_streak,
-                longest_streak
+                longest_streak,
+                last_streak_date
+            FROM users
+            WHERE id = %s
+            """,
+            (user_id,)
+        )
+
+        user = cursor.fetchone()
+
+        cursor.close()
+        connection.close()
+
+        if not user:
+            session.clear()
+
+            return jsonify({
+                "success": False,
+                "message": "User not found"
+            }), 404
+
+        return jsonify({
+            "success": True,
+            "user": user
+        })
+
+    except Exception as error:
+
+        return jsonify({
+            "success": False,
+            "message": "Could not get user",
+            "error": str(error)
+        }), 500
+
+
+# ============================================================
+# DASHBOARD
+# ============================================================
+
+@app.route("/api/dashboard", methods=["GET"])
+def dashboard():
+
+    user_id = session.get("user_id")
+
+    if not user_id:
+        return jsonify({
+            "success": False,
+            "message": "Please login first"
+        }), 401
+
+    try:
+
+        connection = get_db()
+
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
+
+        # User information
+        cursor.execute(
+            """
+            SELECT
+                id,
+                username,
+                email,
+                level,
+                xp,
+                coins,
+                current_streak,
+                longest_streak,
+                last_streak_date
             FROM users
             WHERE id = %s
             """,
@@ -466,12 +492,15 @@ def dashboard():
         user = cursor.fetchone()
 
         if not user:
+            cursor.close()
+            connection.close()
 
             return jsonify({
                 "success": False,
-                "message": "User not found."
+                "message": "User not found"
             }), 404
 
+        # Attributes
         cursor.execute(
             """
             SELECT
@@ -488,26 +517,41 @@ def dashboard():
 
         attributes = cursor.fetchone()
 
+        # Total tasks
+        cursor.execute(
+            """
+            SELECT COUNT(*) AS total
+            FROM tasks
+            WHERE user_id = %s
+            """,
+            (user_id,)
+        )
+
+        total_tasks = cursor.fetchone()["total"]
+
+        # Completed tasks
+        cursor.execute(
+            """
+            SELECT COUNT(*) AS completed
+            FROM tasks
+            WHERE user_id = %s
+            AND completed = TRUE
+            """,
+            (user_id,)
+        )
+
+        completed_tasks = cursor.fetchone()["completed"]
+
+        cursor.close()
+        connection.close()
+
         return jsonify({
             "success": True,
-
-            "user": {
-                "id": user[0],
-                "username": user[1],
-                "email": user[2],
-                "level": user[3],
-                "xp": user[4],
-                "coins": user[5],
-                "current_streak": user[6],
-                "longest_streak": user[7]
-            },
-
-            "attributes": {
-                "strength": attributes[0] if attributes else 1,
-                "intelligence": attributes[1] if attributes else 1,
-                "discipline": attributes[2] if attributes else 1,
-                "creativity": attributes[3] if attributes else 1,
-                "social": attributes[4] if attributes else 1
+            "user": user,
+            "attributes": attributes,
+            "stats": {
+                "total_tasks": total_tasks,
+                "completed_tasks": completed_tasks
             }
         })
 
@@ -515,164 +559,31 @@ def dashboard():
 
         return jsonify({
             "success": False,
-            "message": "Dashboard error.",
+            "message": "Could not load dashboard",
             "error": str(error)
         }), 500
-
-    finally:
-
-        if cursor:
-            cursor.close()
-
-        if connection:
-            connection.close()
-
-
-# ============================================================
-# CREATE TASK
-# ============================================================
-
-@app.route("/api/tasks", methods=["POST"])
-def create_task():
-
-    user_id = session.get("user_id")
-
-    if not user_id:
-
-        return jsonify({
-            "success": False,
-            "message": "Please login first."
-        }), 401
-
-    connection = None
-    cursor = None
-
-    try:
-
-        data = request.get_json() or {}
-
-        title = data.get("title", "").strip()
-        description = data.get("description", "").strip()
-        category = data.get("category", "Personal").strip()
-
-        if not title:
-
-            return jsonify({
-                "success": False,
-                "message": "Quest title is required."
-            }), 400
-
-        if len(title) > 100:
-
-            return jsonify({
-                "success": False,
-                "message": "Quest title must be 100 characters or less."
-            }), 400
-
-        if len(description) > 1000:
-
-            return jsonify({
-                "success": False,
-                "message": "Quest description must be 1000 characters or less."
-            }), 400
-
-        allowed_categories = [
-            "Coding",
-            "Fitness",
-            "Study",
-            "Work",
-            "Personal",
-            "Social"
-        ]
-
-        if category not in allowed_categories:
-
-            category = "Personal"
-
-        xp_reward = 50
-        coin_reward = 25
-
-        connection = get_db_connection()
-        cursor = connection.cursor()
-
-        cursor.execute(
-            """
-            INSERT INTO tasks
-            (
-                user_id,
-                title,
-                description,
-                category,
-                xp_reward,
-                coin_reward,
-                completed
-            )
-            VALUES (%s, %s, %s, %s, %s, %s, FALSE)
-            RETURNING id
-            """,
-            (
-                user_id,
-                title,
-                description,
-                category,
-                xp_reward,
-                coin_reward
-            )
-        )
-
-        task_id = cursor.fetchone()[0]
-
-        connection.commit()
-
-        return jsonify({
-            "success": True,
-            "message": "Quest created successfully!",
-            "task_id": task_id
-        }), 201
-
-    except Exception as error:
-
-        if connection:
-            connection.rollback()
-
-        return jsonify({
-            "success": False,
-            "message": "Could not create quest.",
-            "error": str(error)
-        }), 500
-
-    finally:
-
-        if cursor:
-            cursor.close()
-
-        if connection:
-            connection.close()
 
 
 # ============================================================
 # GET TASKS
 # ============================================================
 
-@app.route("/api/tasks")
+@app.route("/api/tasks", methods=["GET"])
 def get_tasks():
 
     user_id = session.get("user_id")
 
     if not user_id:
-
         return jsonify({
             "success": False,
-            "message": "Please login first."
+            "message": "Please login first"
         }), 401
-
-    connection = None
-    cursor = None
 
     try:
 
-        connection = get_db_connection()
-        cursor = connection.cursor()
+        connection = get_db()
+
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
 
         cursor.execute(
             """
@@ -688,28 +599,15 @@ def get_tasks():
                 completed_at
             FROM tasks
             WHERE user_id = %s
-            ORDER BY completed ASC, created_at DESC
+            ORDER BY created_at DESC
             """,
             (user_id,)
         )
 
-        rows = cursor.fetchall()
+        tasks = cursor.fetchall()
 
-        tasks = []
-
-        for row in rows:
-
-            tasks.append({
-                "id": row[0],
-                "title": row[1],
-                "description": row[2],
-                "category": row[3],
-                "xp_reward": row[4],
-                "coin_reward": row[5],
-                "completed": row[6],
-                "created_at": row[7].isoformat() if row[7] else None,
-                "completed_at": row[8].isoformat() if row[8] else None
-            })
+        cursor.close()
+        connection.close()
 
         return jsonify({
             "success": True,
@@ -720,56 +618,153 @@ def get_tasks():
 
         return jsonify({
             "success": False,
-            "message": "Could not load quests.",
+            "message": "Could not load tasks",
             "error": str(error)
         }), 500
 
-    finally:
 
-        if cursor:
-            cursor.close()
+# ============================================================
+# CREATE TASK
+# ============================================================
 
-        if connection:
-            connection.close()
+@app.route("/api/tasks", methods=["POST"])
+def create_task():
+
+    user_id = session.get("user_id")
+
+    if not user_id:
+        return jsonify({
+            "success": False,
+            "message": "Please login first"
+        }), 401
+
+    try:
+
+        data = request.get_json()
+
+        if not data:
+            return jsonify({
+                "success": False,
+                "message": "No task data received"
+            }), 400
+
+        title = data.get("title", "").strip()
+        description = data.get("description", "").strip()
+        category = data.get("category", "General")
+
+        xp_reward = int(data.get("xp_reward", 10))
+        coin_reward = int(data.get("coin_reward", 5))
+
+        if not title:
+            return jsonify({
+                "success": False,
+                "message": "Task title is required"
+            }), 400
+
+        if len(title) > 100:
+            return jsonify({
+                "success": False,
+                "message": "Task title is too long"
+            }), 400
+
+        if xp_reward < 1:
+            xp_reward = 1
+
+        if coin_reward < 0:
+            coin_reward = 0
+
+        connection = get_db()
+
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
+
+        cursor.execute(
+            """
+            INSERT INTO tasks
+            (
+                user_id,
+                title,
+                description,
+                category,
+                xp_reward,
+                coin_reward
+            )
+            VALUES
+            (
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s
+            )
+            RETURNING *
+            """,
+            (
+                user_id,
+                title,
+                description,
+                category,
+                xp_reward,
+                coin_reward
+            )
+        )
+
+        task = cursor.fetchone()
+
+        connection.commit()
+
+        cursor.close()
+        connection.close()
+
+        return jsonify({
+            "success": True,
+            "message": "Task created!",
+            "task": task
+        }), 201
+
+    except ValueError:
+
+        return jsonify({
+            "success": False,
+            "message": "XP and coin rewards must be numbers"
+        }), 400
+
+    except Exception as error:
+
+        return jsonify({
+            "success": False,
+            "message": "Could not create task",
+            "error": str(error)
+        }), 500
 
 
 # ============================================================
 # COMPLETE TASK
 # ============================================================
 
-@app.route("/api/tasks/<int:task_id>/complete", methods=["PUT"])
+@app.route("/api/tasks/<int:task_id>/complete", methods=["POST"])
 def complete_task(task_id):
 
     user_id = session.get("user_id")
 
     if not user_id:
-
         return jsonify({
             "success": False,
-            "message": "Please login first."
+            "message": "Please login first"
         }), 401
 
     connection = None
-    cursor = None
 
     try:
 
-        connection = get_db_connection()
-        cursor = connection.cursor()
+        connection = get_db()
 
-        # ----------------------------------------------------
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
+
         # Get task
-        # ----------------------------------------------------
-
         cursor.execute(
             """
-            SELECT
-                id,
-                title,
-                category,
-                xp_reward,
-                coin_reward,
-                completed
+            SELECT *
             FROM tasks
             WHERE id = %s
             AND user_id = %s
@@ -781,27 +776,25 @@ def complete_task(task_id):
 
         if not task:
 
+            cursor.close()
+            connection.close()
+
             return jsonify({
                 "success": False,
-                "message": "Quest not found."
+                "message": "Task not found"
             }), 404
 
-        if task[5]:
+        if task["completed"]:
+
+            cursor.close()
+            connection.close()
 
             return jsonify({
                 "success": False,
-                "message": "Quest is already completed."
+                "message": "Task already completed"
             }), 400
 
-        task_title = task[1]
-        category = task[2]
-        xp_reward = task[3]
-        coin_reward = task[4]
-
-        # ----------------------------------------------------
         # Mark task completed
-        # ----------------------------------------------------
-
         cursor.execute(
             """
             UPDATE tasks
@@ -814,10 +807,7 @@ def complete_task(task_id):
             (task_id, user_id)
         )
 
-        # ----------------------------------------------------
-        # Get player
-        # ----------------------------------------------------
-
+        # Get user
         cursor.execute(
             """
             SELECT
@@ -834,79 +824,57 @@ def complete_task(task_id):
             (user_id,)
         )
 
-        player = cursor.fetchone()
+        user = cursor.fetchone()
 
-        if not player:
+        old_level = user["level"]
+        old_xp = user["xp"]
 
-            connection.rollback()
+        new_xp = old_xp + task["xp_reward"]
+        new_coins = user["coins"] + task["coin_reward"]
 
-            return jsonify({
-                "success": False,
-                "message": "Player not found."
-            }), 404
+        # ====================================================
+        # NON-LINEAR LEVEL SYSTEM
+        # ====================================================
 
-        current_level = player[0]
-        current_xp = player[1]
-        current_coins = player[2]
-        current_streak = player[3] or 0
-        longest_streak = player[4] or 0
-        last_streak_date = player[5]
+        level = 1
+        remaining_xp = new_xp
 
-        # ----------------------------------------------------
-        # STREAK LOGIC
-        # ----------------------------------------------------
+        while remaining_xp >= level * level * 100:
+            remaining_xp -= level * level * 100
+            level += 1
 
-        today = datetime.now().date()
+        # ====================================================
+        # STREAK SYSTEM
+        # ====================================================
 
-        streak_updated = False
+        today = date.today()
+
+        current_streak = user["current_streak"] or 0
+        longest_streak = user["longest_streak"] or 0
+        last_streak_date = user["last_streak_date"]
 
         if last_streak_date is None:
 
             current_streak = 1
-            streak_updated = True
 
         elif last_streak_date == today:
 
-            # Already completed something today.
-            current_streak = current_streak
+            # Already completed a task today.
+            # Keep the current streak.
+            current_streak = max(current_streak, 1)
 
         elif last_streak_date == today - timedelta(days=1):
 
             current_streak += 1
-            streak_updated = True
 
         else:
 
             current_streak = 1
-            streak_updated = True
 
         if current_streak > longest_streak:
-
             longest_streak = current_streak
 
-        # ----------------------------------------------------
-        # XP AND COINS
-        # ----------------------------------------------------
-
-        new_xp = current_xp + xp_reward
-        new_coins = current_coins + coin_reward
-
-        new_level = current_level
-        level_ups = 0
-
-        # Nonlinear level progression
-        while new_xp >= new_level * 100:
-
-            new_xp -= new_level * 100
-
-            new_level += 1
-
-            level_ups += 1
-
-        # ----------------------------------------------------
-        # UPDATE PLAYER
-        # ----------------------------------------------------
-
+        # Update user
         cursor.execute(
             """
             UPDATE users
@@ -920,7 +888,7 @@ def complete_task(task_id):
             WHERE id = %s
             """,
             (
-                new_level,
+                level,
                 new_xp,
                 new_coins,
                 current_streak,
@@ -930,39 +898,36 @@ def complete_task(task_id):
             )
         )
 
-        # ----------------------------------------------------
-        # ATTRIBUTE MAPPING
-        # ----------------------------------------------------
+        # ====================================================
+        # ATTRIBUTE REWARD
+        # ====================================================
 
-        attribute_map = {
-            "Fitness": "strength",
-            "Coding": "intelligence",
-            "Study": "intelligence",
-            "Work": "discipline",
-            "Personal": "discipline",
-            "Social": "social"
-        }
+        category = (task["category"] or "").lower()
 
-        attribute = attribute_map.get(
-            category,
-            "discipline"
-        )
+        attribute_column = None
 
-        allowed_attributes = {
-            "strength",
-            "intelligence",
-            "discipline",
-            "creativity",
-            "social"
-        }
+        if category in ["gym", "fitness", "health", "exercise", "strength"]:
+            attribute_column = "strength"
 
-        if attribute in allowed_attributes:
+        elif category in ["coding", "study", "learning", "education", "intelligence"]:
+            attribute_column = "intelligence"
+
+        elif category in ["work", "discipline", "habit", "productivity"]:
+            attribute_column = "discipline"
+
+        elif category in ["art", "creative", "creativity", "design"]:
+            attribute_column = "creativity"
+
+        elif category in ["social", "friends", "communication"]:
+            attribute_column = "social"
+
+        if attribute_column:
 
             cursor.execute(
                 f"""
                 UPDATE attributes
                 SET
-                    {attribute} = {attribute} + 1,
+                    {attribute_column} = {attribute_column} + 1,
                     updated_at = CURRENT_TIMESTAMP
                 WHERE user_id = %s
                 """,
@@ -971,132 +936,83 @@ def complete_task(task_id):
 
         connection.commit()
 
-        # ----------------------------------------------------
-        # RESPONSE
-        # ----------------------------------------------------
+        cursor.close()
+        connection.close()
 
         return jsonify({
-
             "success": True,
-
-            "message": f"Quest '{task_title}' completed!",
-
+            "message": "Quest completed!",
             "reward": {
-                "xp": xp_reward,
-                "coins": coin_reward
+                "xp": task["xp_reward"],
+                "coins": task["coin_reward"]
             },
-
             "player": {
-                "level": new_level,
+                "level": level,
                 "xp": new_xp,
                 "coins": new_coins,
-                "level_ups": level_ups,
                 "current_streak": current_streak,
                 "longest_streak": longest_streak
             },
-
-            "streak": {
-                "current": current_streak,
-                "longest": longest_streak,
-                "updated": streak_updated
-            },
-
-            "attribute": attribute
+            "level_up": level > old_level
         })
 
     except Exception as error:
 
         if connection:
             connection.rollback()
+            connection.close()
 
         return jsonify({
             "success": False,
-            "message": "Could not complete quest.",
+            "message": "Could not complete task",
             "error": str(error)
         }), 500
 
-    finally:
-
-        if cursor:
-            cursor.close()
-
-        if connection:
-            connection.close()
-
 
 # ============================================================
-# SHOP ITEMS
+# SHOP
 # ============================================================
 
-SHOP_ITEMS = [
+@app.route("/api/shop", methods=["GET"])
+def shop():
 
-    {
-        "id": 1,
-        "name": "Iron Sword",
-        "type": "Equipment",
-        "description": "A basic warrior sword.",
-        "cost": 100,
-        "icon": "⚔️"
-    },
+    # Static shop items for prototype.
+    # These can later be moved into a database table.
 
-    {
-        "id": 2,
-        "name": "Guardian Shield",
-        "type": "Equipment",
-        "description": "Protect yourself from life's challenges.",
-        "cost": 150,
-        "icon": "🛡️"
-    },
-
-    {
-        "id": 3,
-        "name": "Health Potion",
-        "type": "Consumable",
-        "description": "A potion for your adventure.",
-        "cost": 75,
-        "icon": "🧪"
-    },
-
-    {
-        "id": 4,
-        "name": "Magic Book",
-        "type": "Special",
-        "description": "A mysterious book of knowledge.",
-        "cost": 250,
-        "icon": "📕"
-    },
-
-    {
-        "id": 5,
-        "name": "Golden Crown",
-        "type": "Legendary",
-        "description": "A reward for legendary players.",
-        "cost": 500,
-        "icon": "👑"
-    }
-
-]
-
-
-# ============================================================
-# GET SHOP
-# ============================================================
-
-@app.route("/api/shop")
-def get_shop():
-
-    user_id = session.get("user_id")
-
-    if not user_id:
-
-        return jsonify({
-            "success": False,
-            "message": "Please login first."
-        }), 401
+    items = [
+        {
+            "id": 1,
+            "name": "XP Potion",
+            "description": "A small boost for your journey.",
+            "item_type": "potion",
+            "cost": 50
+        },
+        {
+            "id": 2,
+            "name": "Health Potion",
+            "description": "Recover your warrior energy.",
+            "item_type": "health",
+            "cost": 75
+        },
+        {
+            "id": 3,
+            "name": "Golden Sword",
+            "description": "A legendary cosmetic weapon.",
+            "item_type": "weapon",
+            "cost": 250
+        },
+        {
+            "id": 4,
+            "name": "Magic Shield",
+            "description": "Protect your character.",
+            "item_type": "armor",
+            "cost": 200
+        }
+    ]
 
     return jsonify({
         "success": True,
-        "items": SHOP_ITEMS
+        "items": items
     })
 
 
@@ -1105,55 +1021,59 @@ def get_shop():
 # ============================================================
 
 @app.route("/api/shop/buy", methods=["POST"])
-def buy_shop_item():
+def buy_item():
 
     user_id = session.get("user_id")
 
     if not user_id:
-
         return jsonify({
             "success": False,
-            "message": "Please login first."
+            "message": "Please login first"
         }), 401
-
-    connection = None
-    cursor = None
 
     try:
 
-        data = request.get_json() or {}
+        data = request.get_json()
 
-        item_id = data.get("item_id")
+        item_id = int(data.get("item_id"))
 
-        try:
-            item_id = int(item_id)
-        except (TypeError, ValueError):
+        items = {
+            1: {
+                "name": "XP Potion",
+                "type": "potion",
+                "cost": 50
+            },
+            2: {
+                "name": "Health Potion",
+                "type": "health",
+                "cost": 75
+            },
+            3: {
+                "name": "Golden Sword",
+                "type": "weapon",
+                "cost": 250
+            },
+            4: {
+                "name": "Magic Shield",
+                "type": "armor",
+                "cost": 200
+            }
+        }
+
+        if item_id not in items:
 
             return jsonify({
                 "success": False,
-                "message": "Invalid item ID."
+                "message": "Invalid shop item"
             }), 400
 
-        item = next(
-            (
-                shop_item
-                for shop_item in SHOP_ITEMS
-                if shop_item["id"] == item_id
-            ),
-            None
-        )
+        item = items[item_id]
 
-        if not item:
+        connection = get_db()
 
-            return jsonify({
-                "success": False,
-                "message": "Item not found."
-            }), 404
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
 
-        connection = get_db_connection()
-        cursor = connection.cursor()
-
-        # Lock player row during purchase
+        # Lock user row
         cursor.execute(
             """
             SELECT coins
@@ -1164,45 +1084,56 @@ def buy_shop_item():
             (user_id,)
         )
 
-        player = cursor.fetchone()
+        user = cursor.fetchone()
 
-        if not player:
+        if not user:
+
+            cursor.close()
+            connection.close()
 
             return jsonify({
                 "success": False,
-                "message": "Player not found."
+                "message": "User not found"
             }), 404
 
-        current_coins = player[0]
+        if user["coins"] < item["cost"]:
 
-        if current_coins < item["cost"]:
+            cursor.close()
+            connection.close()
 
             return jsonify({
                 "success": False,
-                "message": "Not enough coins."
+                "message": "Not enough coins"
             }), 400
-
-        new_coins = current_coins - item["cost"]
 
         # Deduct coins
         cursor.execute(
             """
             UPDATE users
-            SET coins = %s
+            SET coins = coins - %s
             WHERE id = %s
+            RETURNING coins
             """,
-            (new_coins, user_id)
+            (
+                item["cost"],
+                user_id
+            )
         )
 
-        # Check inventory
+        updated_user = cursor.fetchone()
+
+        # Add item to inventory
         cursor.execute(
             """
-            SELECT id, quantity
+            SELECT id
             FROM inventory
             WHERE user_id = %s
             AND item_name = %s
             """,
-            (user_id, item["name"])
+            (
+                user_id,
+                item["name"]
+            )
         )
 
         existing_item = cursor.fetchone()
@@ -1215,7 +1146,7 @@ def buy_shop_item():
                 SET quantity = quantity + 1
                 WHERE id = %s
                 """,
-                (existing_item[0],)
+                (existing_item["id"],)
             )
 
         else:
@@ -1230,7 +1161,14 @@ def buy_shop_item():
                     quantity,
                     cost
                 )
-                VALUES (%s, %s, %s, 1, %s)
+                VALUES
+                (
+                    %s,
+                    %s,
+                    %s,
+                    1,
+                    %s
+                )
                 """,
                 (
                     user_id,
@@ -1242,56 +1180,51 @@ def buy_shop_item():
 
         connection.commit()
 
+        cursor.close()
+        connection.close()
+
         return jsonify({
             "success": True,
-            "message": f"{item['name']} purchased successfully!",
-            "item": item,
-            "coins": new_coins
+            "message": f'{item["name"]} purchased!',
+            "coins": updated_user["coins"]
         })
 
-    except Exception as error:
-
-        if connection:
-            connection.rollback()
+    except (ValueError, TypeError):
 
         return jsonify({
             "success": False,
-            "message": "Purchase failed.",
+            "message": "Invalid item ID"
+        }), 400
+
+    except Exception as error:
+
+        return jsonify({
+            "success": False,
+            "message": "Purchase failed",
             "error": str(error)
         }), 500
-
-    finally:
-
-        if cursor:
-            cursor.close()
-
-        if connection:
-            connection.close()
 
 
 # ============================================================
 # INVENTORY
 # ============================================================
 
-@app.route("/api/inventory")
-def get_inventory():
+@app.route("/api/inventory", methods=["GET"])
+def inventory():
 
     user_id = session.get("user_id")
 
     if not user_id:
-
         return jsonify({
             "success": False,
-            "message": "Please login first."
+            "message": "Please login first"
         }), 401
-
-    connection = None
-    cursor = None
 
     try:
 
-        connection = get_db_connection()
-        cursor = connection.cursor()
+        connection = get_db()
+
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
 
         cursor.execute(
             """
@@ -1309,53 +1242,128 @@ def get_inventory():
             (user_id,)
         )
 
-        rows = cursor.fetchall()
+        items = cursor.fetchall()
 
-        items = []
-
-        for row in rows:
-
-            items.append({
-                "id": row[0],
-                "item_name": row[1],
-                "item_type": row[2],
-                "quantity": row[3],
-                "cost": row[4],
-                "acquired_at": row[5].isoformat()
-                if row[5]
-                else None
-            })
+        cursor.close()
+        connection.close()
 
         return jsonify({
             "success": True,
-            "items": items
+            "inventory": items
         })
 
     except Exception as error:
 
         return jsonify({
             "success": False,
-            "message": "Could not load inventory.",
+            "message": "Could not load inventory",
             "error": str(error)
         }), 500
 
-    finally:
 
-        if cursor:
-            cursor.close()
+# ============================================================
+# ATTRIBUTES
+# ============================================================
 
-        if connection:
-            connection.close()
+@app.route("/api/attributes", methods=["GET"])
+def get_attributes():
+
+    user_id = session.get("user_id")
+
+    if not user_id:
+        return jsonify({
+            "success": False,
+            "message": "Please login first"
+        }), 401
+
+    try:
+
+        connection = get_db()
+
+        cursor = connection.cursor(cursor_factory=RealDictCursor)
+
+        cursor.execute(
+            """
+            SELECT
+                strength,
+                intelligence,
+                discipline,
+                creativity,
+                social
+            FROM attributes
+            WHERE user_id = %s
+            """,
+            (user_id,)
+        )
+
+        attributes = cursor.fetchone()
+
+        cursor.close()
+        connection.close()
+
+        return jsonify({
+            "success": True,
+            "attributes": attributes
+        })
+
+    except Exception as error:
+
+        return jsonify({
+            "success": False,
+            "message": "Could not load attributes",
+            "error": str(error)
+        }), 500
 
 
 # ============================================================
-# RUN SERVER
+# HEALTH CHECK
+# ============================================================
+
+@app.route("/health", methods=["GET"])
+def health():
+
+    return jsonify({
+        "status": "ok",
+        "application": "RPG Tracker"
+    })
+
+
+# ============================================================
+# ERROR HANDLERS
+# ============================================================
+
+@app.errorhandler(404)
+def page_not_found(error):
+
+    # API 404 should return JSON
+    if request.path.startswith("/api/"):
+        return jsonify({
+            "success": False,
+            "message": "API endpoint not found"
+        }), 404
+
+    return send_from_directory(FRONTEND_DIR, "index.html")
+
+
+@app.errorhandler(500)
+def internal_server_error(error):
+
+    return jsonify({
+        "success": False,
+        "message": "Internal server error"
+    }), 500
+
+
+# ============================================================
+# START SERVER
 # ============================================================
 
 if __name__ == "__main__":
 
+    port = int(os.environ.get("PORT", 5000))
+
     app.run(
-        host="127.0.0.1",
-        port=5000,
-        debug=True
+        host="0.0.0.0",
+        port=port,
+        debug=os.environ.get("FLASK_DEBUG", "0") == "1"
     )
