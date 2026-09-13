@@ -3520,3 +3520,618 @@ footer {
         max-width: 300px;
     }
 }
+/* =========================================================
+   RPG TRACKER LANDING PAGE
+   ========================================================= */
+
+.landing-page {
+    margin: 0;
+    min-height: 100vh;
+    background:
+        radial-gradient(circle at 50% 35%, rgba(90, 70, 180, 0.18), transparent 35%),
+        linear-gradient(135deg, #070711 0%, #101020 50%, #080810 100%);
+    color: #ffffff;
+    font-family: Arial, Helvetica, sans-serif;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* =========================
+   ANIMATED STARS
+   ========================= */
+
+.landing-page .stars {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    opacity: 0.8;
+    background-image:
+        radial-gradient(circle, rgba(255,255,255,0.9) 1px, transparent 1px),
+        radial-gradient(circle, rgba(140,180,255,0.6) 1px, transparent 1px);
+    background-size: 90px 90px, 150px 150px;
+    background-position: 0 0, 40px 70px;
+    animation: starsMove 25s linear infinite;
+    z-index: 0;
+}
+
+.landing-page .stars2 {
+    opacity: 0.35;
+    background-size: 180px 180px, 240px 240px;
+    animation-duration: 45s;
+    animation-direction: reverse;
+}
+
+@keyframes starsMove {
+    from {
+        transform: translateY(0);
+    }
+
+    to {
+        transform: translateY(-180px);
+    }
+}
+
+/* =========================
+   GLOW EFFECTS
+   ========================= */
+
+.landing-page .glow {
+    position: fixed;
+    width: 450px;
+    height: 450px;
+    border-radius: 50%;
+    filter: blur(100px);
+    pointer-events: none;
+    opacity: 0.18;
+    z-index: 0;
+    animation: glowFloat 8s ease-in-out infinite alternate;
+}
+
+.landing-page .glow-one {
+    top: 10%;
+    left: -150px;
+    background: #7c5cff;
+}
+
+.landing-page .glow-two {
+    bottom: 0;
+    right: -150px;
+    background: #00c6ff;
+    animation-delay: 2s;
+}
+
+@keyframes glowFloat {
+    from {
+        transform: translateY(0) scale(1);
+    }
+
+    to {
+        transform: translateY(-50px) scale(1.15);
+    }
+}
+
+/* =========================
+   NAVBAR
+   ========================= */
+
+.landing-page .navbar {
+    position: relative;
+    z-index: 10;
+
+    width: min(1150px, calc(100% - 40px));
+    margin: auto;
+    padding: 28px 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.landing-page .logo {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 2px;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    text-shadow: 0 0 15px rgba(140, 100, 255, 0.7);
+}
+
+.landing-page .logo:first-letter {
+    font-size: 28px;
+}
+
+.landing-page .nav-login {
+    color: #ffffff;
+    text-decoration: none;
+
+    padding: 11px 22px;
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 30px;
+
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px);
+
+    transition: all 0.3s ease;
+}
+
+.landing-page .nav-login:hover {
+    transform: translateY(-3px);
+    background: rgba(255,255,255,0.12);
+    border-color: rgba(160,130,255,0.8);
+    box-shadow: 0 0 25px rgba(120,90,255,0.35);
+}
+
+/* =========================
+   HERO
+   ========================= */
+
+.landing-page .hero {
+    position: relative;
+    z-index: 5;
+
+    min-height: 650px;
+
+    max-width: 900px;
+    margin: 0 auto;
+
+    padding: 80px 20px 50px;
+
+    text-align: center;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* =========================
+   SWORD
+   ========================= */
+
+.landing-page .sword {
+    font-size: 75px;
+
+    margin-bottom: 20px;
+
+    animation: swordFloat 3s ease-in-out infinite;
+
+    filter:
+        drop-shadow(0 0 12px rgba(255,255,255,0.6))
+        drop-shadow(0 0 35px rgba(110,80,255,0.8));
+}
+
+@keyframes swordFloat {
+    0%,
+    100% {
+        transform: translateY(0) rotate(-4deg);
+    }
+
+    50% {
+        transform: translateY(-18px) rotate(4deg);
+    }
+}
+
+/* =========================
+   EYEBROW
+   ========================= */
+
+.landing-page .eyebrow {
+    margin: 0 0 18px;
+
+    color: #a99cff;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    letter-spacing: 4px;
+
+    animation: fadeUp 0.8s ease both;
+}
+
+/* =========================
+   MAIN TITLE
+   ========================= */
+
+.landing-page .hero h1 {
+    margin: 0;
+
+    font-size: clamp(55px, 9vw, 110px);
+    line-height: 0.95;
+
+    font-weight: 900;
+    letter-spacing: -4px;
+
+    text-shadow:
+        0 0 15px rgba(255,255,255,0.15),
+        0 0 50px rgba(110,80,255,0.3);
+
+    animation: titleAppear 1s ease both;
+}
+
+.landing-page .hero h1 span {
+    display: block;
+
+    background: linear-gradient(
+        90deg,
+        #8d6cff,
+        #ffffff,
+        #5bdcff,
+        #8d6cff
+    );
+
+    background-size: 300% auto;
+
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+
+    animation: titleGradient 5s linear infinite;
+}
+
+@keyframes titleGradient {
+    0% {
+        background-position: 0% center;
+    }
+
+    100% {
+        background-position: 300% center;
+    }
+}
+
+@keyframes titleAppear {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* =========================
+   HERO TEXT
+   ========================= */
+
+.landing-page .hero-text {
+    max-width: 650px;
+
+    margin: 30px auto 0;
+
+    color: rgba(255,255,255,0.72);
+
+    font-size: 18px;
+    line-height: 1.8;
+
+    animation: fadeUp 1s ease 0.2s both;
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* =========================
+   BUTTONS
+   ========================= */
+
+.landing-page .hero-buttons {
+    display: flex;
+    gap: 16px;
+
+    margin-top: 35px;
+
+    flex-wrap: wrap;
+    justify-content: center;
+
+    animation: fadeUp 1s ease 0.4s both;
+}
+
+.landing-page .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 190px;
+
+    padding: 15px 25px;
+
+    border-radius: 12px;
+
+    text-decoration: none;
+
+    font-weight: 800;
+
+    transition:
+        transform 0.3s ease,
+        box-shadow 0.3s ease,
+        background 0.3s ease;
+}
+
+.landing-page .primary-btn {
+    color: #ffffff;
+
+    background: linear-gradient(
+        135deg,
+        #7255ff,
+        #9a63ff
+    );
+
+    box-shadow:
+        0 10px 35px rgba(115,80,255,0.35),
+        inset 0 1px rgba(255,255,255,0.25);
+}
+
+.landing-page .primary-btn:hover {
+    transform: translateY(-5px) scale(1.03);
+
+    box-shadow:
+        0 18px 50px rgba(115,80,255,0.55),
+        0 0 25px rgba(130,100,255,0.3);
+}
+
+.landing-page .secondary-btn {
+    color: #ffffff;
+
+    border: 1px solid rgba(255,255,255,0.22);
+
+    background: rgba(255,255,255,0.06);
+
+    backdrop-filter: blur(10px);
+}
+
+.landing-page .secondary-btn:hover {
+    transform: translateY(-5px);
+
+    background: rgba(255,255,255,0.12);
+
+    border-color: rgba(150,120,255,0.7);
+
+    box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+}
+
+/* =========================
+   FLOATING GAME CARDS
+   ========================= */
+
+.landing-page .floating-card {
+    position: absolute;
+
+    padding: 14px 20px;
+
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 15px;
+
+    background: rgba(20,20,40,0.65);
+
+    backdrop-filter: blur(15px);
+
+    box-shadow:
+        0 15px 40px rgba(0,0,0,0.35),
+        inset 0 1px rgba(255,255,255,0.08);
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    font-size: 14px;
+
+    animation: cardFloat 4s ease-in-out infinite;
+}
+
+.landing-page .floating-card span {
+    font-size: 22px;
+}
+
+.landing-page .card-xp {
+    left: 2%;
+    top: 42%;
+
+    animation-delay: 0s;
+}
+
+.landing-page .card-level {
+    right: 2%;
+    top: 28%;
+
+    animation-delay: 1.2s;
+}
+
+.landing-page .card-coins {
+    right: 7%;
+    bottom: 12%;
+
+    animation-delay: 2.2s;
+}
+
+@keyframes cardFloat {
+    0%,
+    100% {
+        transform: translateY(0) rotate(0deg);
+    }
+
+    50% {
+        transform: translateY(-15px) rotate(1deg);
+    }
+}
+
+/* =========================
+   FEATURES
+   ========================= */
+
+.landing-page .features {
+    position: relative;
+    z-index: 5;
+
+    width: min(900px, calc(100% - 40px));
+
+    margin: 0 auto;
+
+    padding: 30px 0 80px;
+
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.landing-page .feature {
+    padding: 28px 20px;
+
+    text-align: center;
+
+    border: 1px solid rgba(255,255,255,0.10);
+
+    border-radius: 18px;
+
+    background: rgba(255,255,255,0.04);
+
+    backdrop-filter: blur(12px);
+
+    transition:
+        transform 0.3s ease,
+        background 0.3s ease,
+        box-shadow 0.3s ease;
+
+    animation: featureAppear 0.8s ease both;
+}
+
+.landing-page .feature:nth-child(2) {
+    animation-delay: 0.15s;
+}
+
+.landing-page .feature:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+.landing-page .feature:hover {
+    transform: translateY(-8px);
+
+    background: rgba(255,255,255,0.08);
+
+    box-shadow:
+        0 20px 50px rgba(0,0,0,0.3),
+        0 0 25px rgba(110,80,255,0.12);
+}
+
+.landing-page .feature-icon {
+    font-size: 35px;
+
+    margin-bottom: 10px;
+
+    filter: drop-shadow(0 0 10px rgba(255,255,255,0.3));
+}
+
+.landing-page .feature h3 {
+    margin: 8px 0;
+
+    font-size: 18px;
+}
+
+.landing-page .feature p {
+    margin: 0;
+
+    color: rgba(255,255,255,0.55);
+}
+
+@keyframes featureAppear {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* =========================
+   FOOTER
+   ========================= */
+
+.landing-page footer {
+    position: relative;
+    z-index: 5;
+
+    padding: 25px 20px 35px;
+
+    text-align: center;
+
+    color: rgba(255,255,255,0.4);
+
+    font-size: 13px;
+
+    border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+/* =========================
+   MOBILE
+   ========================= */
+
+@media (max-width: 700px) {
+
+    .landing-page .navbar {
+        width: calc(100% - 30px);
+        padding: 20px 0;
+    }
+
+    .landing-page .logo {
+        font-size: 15px;
+    }
+
+    .landing-page .nav-login {
+        padding: 9px 15px;
+        font-size: 13px;
+    }
+
+    .landing-page .hero {
+        min-height: 600px;
+        padding-top: 55px;
+    }
+
+    .landing-page .sword {
+        font-size: 55px;
+    }
+
+    .landing-page .hero h1 {
+        font-size: clamp(48px, 15vw, 75px);
+        letter-spacing: -3px;
+    }
+
+    .landing-page .hero-text {
+        font-size: 16px;
+        line-height: 1.6;
+    }
+
+    .landing-page .floating-card {
+        display: none;
+    }
+
+    .landing-page .features {
+        grid-template-columns: 1fr;
+        padding-bottom: 50px;
+    }
+
+    .landing-page .hero-buttons {
+        flex-direction: column;
+        width: 100%;
+        max-width: 320px;
+    }
+
+    .landing-page .btn {
+        width: 100%;
+        box-sizing: border-box;
+    }
+}
